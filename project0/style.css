@@ -1,4 +1,108 @@
-a{
-    text-align: right;
+.link{
+    text-align: end;
+}
+
+.searchfield{
+    border: 1px solid #e6e6e6;
+    background-color: #ebebeb;
+    color: black;
+    width: 70vw;
+    height: 50px;
+    min-width: 200px;
+    max-width: 1000px;
+    font-size: medium;
+    text-align: left;
+
+    
+}
+.searchfield:hover{
+  background-color: #d1d1d1;
+}
+.searchfield:focus{
+    background-color: white;
+    outline:none;
+}
+
+#searchdiv{
+    border: 1px solid #e6e6e6;
+    border-radius: 100px;
+    background-color: #ebebeb;
+}
+
+#searchdiv:hover{
+    background-color: #d1d1d1;
+}
+#searchdiv:focus-within{
+    background-color: white;
+    outline:none;
+}
+
+.standarddiv{
+    text-align: center;
+    min-height: fit-content;
+}
+
+
+.googleform{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    justify-items: inherit;
+    height: 70vh;
+}
+
+#googleimg{
+    width: 280px;
+    margin: 30px;
+}
+
+#submit{
+    min-width: 150px;
+    min-height: 30px;
+    margin: 20px;
+    background-color: #f7f7f7;
+    border-radius: 2%;
+    outline: none;
+    border: none;
+
+}
+#submit:hover{
+ 
+ box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+#advancedsubmit{
+    min-width: 150px;
+    min-height: 30px;
+    margin: 20px;
+    border-radius: 2%;
+    outline: none;
+    border: none;
+    color: white;
+    background-color: rgb(76, 76, 238);
+}
+
+#advancedsubmit:hover{
     background-color: blue;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+   }
+
+.input-icons i {
+    position: absolute;
+    padding: 12px;
+    pointer-events: none;
+}
+
+#alink {
+    text-decoration: none;
+    display: inline-grid;
+    color: #464646;
+    margin-inline: 10px;
+    font-size: small;
+}
+
+#alink:hover {
+    text-decoration: underline;
+    outline: #464646;
+
 }
