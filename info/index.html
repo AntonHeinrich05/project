@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <h1>Math Quiz</h1>
+            <p>Test your knowledge in Analysis and Stochastics!</p>
+            <button id="start-button">Start Quiz</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+		<h2>Your Score: <span id="final-score"></span></h2>
+            <div id="question-container">
+                <p id="timer">Time Left: <span id="time-left">30</span> seconds</p>
+                <p id="question"></p>
+                <div id="answers">
+                    <button class="answer" data-option="A"></button>
+                    <button class="answer" data-option="B"></button>
+                    <button class="answer" data-option="C"></button>
+                    <button class="answer" data-option="D"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden">
+            <h2>Your Score: <span id="final-score"></span></h2>
+            <form action="index.html">
+			<button type="submit">Restart Quiz</button>
+		</form>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
