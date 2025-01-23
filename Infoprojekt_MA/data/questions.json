@@ -1,0 +1,42 @@
+[
+    {
+        "question": "Ein Ball wird aus einer Höhe von h₀=20m senkrecht nach oben geworfen. Die Anfangsgeschwindigkeit beträgt v₀=10m/s. Die Bewegung wird durch die Funktion h(t) = -5t² + 10t + 20 beschrieben. Wann erreicht der Ball seine maximale Höhe?",
+        "answers": {
+            "A": "t=1s",
+            "B": "t=2s",
+            "C": "t=0,5s",
+            "D": "t=3s"
+        },
+        "correct": "A"
+    },
+    {
+        "question": "Welche maximale Höhe erreicht der Ball?",
+        "answers": {
+            "A": "h=25m",
+            "B": "h=20m",
+            "C": "h=30m",
+            "D": "h=15m"
+        },
+        "correct": "A"
+    },
+    {
+        "question": "In einer Urne befinden sich 4 rote und 6 blaue Kugeln. Es werden zwei Kugeln ohne Zurücklegen gezogen. Wie groß ist die Wahrscheinlichkeit, dass beide Kugeln rot sind?",
+        "answers": {
+            "A": "2/15",
+            "B": "1/3",
+            "C": "2/5",
+            "D": "3/10"
+        },
+        "correct": "A"
+    },
+    {
+        "question": "In einer Urne befinden sich 4 rote und 6 blaue Kugeln. Es werden zwei Kugeln ohne Zurücklegen gezogen. Wie groß ist die Wahrscheinlichkeit, dass genau eine Kugel rot ist?",
+        "answers": {
+            "A": "4/15",
+            "B": "8/15",
+            "C": "12/15",
+            "D": "2/15"
+        },
+        "correct": "B"
+    }
+]
