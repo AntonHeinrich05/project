@@ -124,7 +124,7 @@ function checkAnswer(option) {
 
 // Timer
 function startTimer() {
-    let timeLeft = 60;
+    let timeLeft = 120;
     timerEl.textContent = timeLeft;
     timerInterval = setInterval(() => {
         timeLeft--;
