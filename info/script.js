@@ -1,82 +1,10 @@
-// Quiz Variables
+let analysis_questions = [];
+let algebra_questions = [];
+let stochastik_questions = [];
+let questions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 let timerInterval;
-
-// Load Questions from JSON
-const questions = [
-    {
-        "question": "Berechne den Wert des Integrals ∫[0,2] (3x² - 2x + 1) dx.",
-        "answers": {
-            "A": "6",
-            "B": "5",
-            "C": "4",
-            "D": "3"
-        },
-        "correct": "A"
-    },
-    {
-        "question": "Bestimme den Grenzwert von f(x) = (x² - 4) / (x - 2) für x → 2.",
-        "answers": {
-            "A": "4",
-            "B": "2",
-            "C": "0",
-            "D": "Unbestimmt"
-        },
-        "correct": "A"
-    },
-    {
-        "question": "Wie lautet die allgemeine Lösung der Differentialgleichung y' = 3x²?",
-        "answers": {
-            "A": "y = x³ + C",
-            "B": "y = 3x³ + C",
-            "C": "y = x² + C",
-            "D": "y = x³"
-        },
-        "correct": "A"
-    },
-    {
-        "question": "Berechne das Volumen des Körpers, der durch die Drehung der Funktion f(x) = x² von x=0 bis x=2 um die x-Achse entsteht.",
-        "answers": {
-            "A": "π*8/5",
-            "B": "π*4/3",
-            "C": "π*2/3",
-            "D": "π*16/3"
-        },
-        "correct": "B"
-    },
-    {
-        "question": "In einer Umfrage gaben 70% der Befragten an, den neuen Film gesehen zu haben. Wie groß ist die Wahrscheinlichkeit, dass von 4 zufällig ausgewählten Befragten genau 2 den Film gesehen haben?",
-        "answers": {
-            "A": "0,5",
-            "B": "0,4",
-            "C": "0,3",
-            "D": "0,6"
-        },
-        "correct": "B"
-    },
-    {
-        "question": "Wie lautet die Gleichung der Tangente an die Funktion f(x) = x³ - 3x an der Stelle x = 1?",
-        "answers": {
-            "A": "y = 2x - 1",
-            "B": "y = 3x - 1",
-            "C": "y = 3x - 2",
-            "D": "y = 2x + 1"
-        },
-        "correct": "A"
-    },
-    {
-        "question": "Berechne das Flächenintegral ∫∫_D (x² + y²) dA, wobei D das Quadrat [0,1] x [0,1] ist.",
-        "answers": {
-            "A": "2/3",
-            "B": "1/2",
-            "C": "1/3",
-            "D": "1"
-        },
-        "correct": "A"
-    }
-];
-
 
 // HTML Elements
 const startScreen = document.getElementById("start-screen");
@@ -87,19 +15,49 @@ const answersEl = document.querySelectorAll(".answer");
 const timerEl = document.getElementById("time-left");
 const finalScoreEl = document.getElementById("final-score");
 
-// Start Quiz
-document.getElementById("start-button").addEventListener("click", startQuiz);
+// JSON-Daten laden
+function loadQuestions() {
+    fetch('data/analysis.json')
+        .then(response => response.json())
+        .then(data => analysis_questions = data)
+        .catch(error => console.error("Fehler beim Laden von Analysis:", error));
 
-function startQuiz() {
+    fetch('data/algebra.json')
+        .then(response => response.json())
+        .then(data => algebra_questions = data)
+        .catch(error => console.error("Fehler beim Laden von Algebra:", error));
+
+    fetch('data/stochastik.json')
+        .then(response => response.json())
+        .then(data => stochastik_questions = data)
+        .catch(error => console.error("Fehler beim Laden von Stochastik:", error));
+}
+
+// Event Listener für die Quiz-Buttons
+document.getElementById("analysis-button").addEventListener("click", () => startQuiz(analysis_questions));
+document.getElementById("algebra-button").addEventListener("click", () => startQuiz(algebra_questions));
+document.getElementById("stochastik-button").addEventListener("click", () => startQuiz(stochastik_questions));
+document.getElementById("start-button").addEventListener("click", () => startQuiz("mix"));
+
+// Start Quiz
+function startQuiz(category) {
     startScreen.classList.add("hidden");
     quizScreen.classList.remove("hidden");
     score = 0;
     currentQuestionIndex = 0;
+
+    if (category === "mix") {
+        questions = [...analysis_questions, ...algebra_questions, ...stochastik_questions];
+        questions = shuffleArray(questions);
+    } else {
+        questions = category;
+    }
+
     loadQuestion();
     startTimer();
 }
 
-// Load a Question
+// Frage laden
 function loadQuestion() {
     showCurrentResults();
     const question = questions[currentQuestionIndex];
@@ -111,7 +69,7 @@ function loadQuestion() {
     });
 }
 
-// Check Answer
+// Antwort prüfen
 function checkAnswer(option) {
     const correct = questions[currentQuestionIndex].correct;
     if (option === correct) {
@@ -122,7 +80,7 @@ function checkAnswer(option) {
     nextQuestion();
 }
 
-// Timer
+// Timer starten
 function startTimer() {
     let timeLeft = 120;
     timerEl.textContent = timeLeft;
@@ -136,32 +94,40 @@ function startTimer() {
     }, 1000);
 }
 
-// Next Question
+// Nächste Frage
 function nextQuestion() {
     clearInterval(timerInterval);
     currentQuestionIndex++;
     if (currentQuestionIndex < questions.length) {
-	  
         loadQuestion();
         startTimer();
     } else {
         showResults();
     }
 }
-// Show current Results
+
+// Aktuellen Punktestand anzeigen
 function showCurrentResults() {
     finalScoreEl.textContent = score;
 }
 
-// Show final Results
+// Endergebnis anzeigen
 function showResults() {
     quizScreen.classList.add("hidden");
     resultsScreen.classList.remove("hidden");
     finalScoreEl.textContent = score;
 }
 
-// Restart Quiz
+// Quiz neu starten
 document.getElementById("restart-button").addEventListener("click", () => {
     resultsScreen.classList.add("hidden");
     startScreen.classList.remove("hidden");
 });
+
+// Hilfsfunktion zum Mischen eines Arrays (für den Mix-Modus)
+function shuffleArray(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
+
+// Fragen beim Laden der Seite aus JSON-Dateien laden
+loadQuestions();
