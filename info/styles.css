@@ -118,7 +118,7 @@ button.answer:hover {
     padding: 25px;
     border-radius: 10px;
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
-    display: none;
+    
     opacity: 0;
     animation: fadeInModal 0.5s ease-in-out forwards;
 }
@@ -143,7 +143,7 @@ button.answer:hover {
 }
 
 #results-screen {
-    display: none;
+    
     margin-top: 30px;
 }
 
@@ -235,4 +235,47 @@ button.answer:hover {
     #restart-button {
         padding: 10px 25px;
     }
+}
+
+
+
+
+
+
+
+
+
+
+/* Hintergrund im weißen Modus */
+.white-mode {
+    background-color: #ffffff; 
+    color: #333; /* Dunkler Text für besseren Kontrast im weißen Modus */
+}
+
+/* Hintergrund im schwarzen Modus */
+.black-mode {
+    background-color: #121212; 
+    color: #fff; /* Weißer Text für besseren Kontrast im schwarzen Modus */
+}
+
+/* Stil für den Button */
+#theme-toggle-btn {
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #0077b6;
+    color: #fff;
+    margin-top: 20px;
+}
+
+#theme-toggle-btn:hover {
+    background-color: #005f8d;
+    transform: translateY(-3px);
+}
+
+#theme-toggle-btn:focus {
+    outline: none;
 }

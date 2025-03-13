@@ -11,6 +11,7 @@
         <!-- Start Screen -->
         <div id="start-screen">
             <h1>Math Quiz</h1>
+
             <p>Mathe ist schön. Mathe macht Spaß. Mathe ist das erste PRÜFUNGSFACH!</p>
 		<button id="analysis-button">Analysis Quiz</button>
 		<button id="algebra-button">Geometrie/Algebra Quiz</button>
@@ -20,16 +21,22 @@
 
         <!-- Quiz Screen -->
         <div id="quiz-screen" class="hidden">
-		<h2>Your Score: <span id="final-score"></span></h2>
+		<h2>Your Score: 0 <span id="final-score"></span></h2>
             <div id="question-container">
-                <p id="timer">Time Left: <span id="time-left">30</span> seconds</p>
-                <p id="question"></p>
+                <p id="timer">Time Left: <span id="time-left">180</span> seconds</p>
+                <p id="question">Welche Aussage trifft zu?</p>
                 <div id="answers">
-                    <button class="answer" data-option="A"></button>
-                    <button class="answer" data-option="B"></button>
-                    <button class="answer" data-option="C"></button>
-                    <button class="answer" data-option="D"></button>
+                    <button class="answer" data-option="A">Mathe ist schön!</button>
+                    <button class="answer" data-option="B">Mathe macht spaß!</button>
+                    <button class="answer" data-option="C">Mathe ist schön!</button>
+                    <button class="answer" data-option="D">Mathe macht spaß!</button>
+			  <button class="answer" data-option="E">Antworten A, B, C und D!</button>
                 </div>
+			<div id="solution-modal" class="hidden">
+    				<p id="solution-text"></p>
+   			 	<button id="solution-ok">OK</button>
+			</div>
+	    
             </div>
         </div>
 
@@ -37,7 +44,7 @@
         <div id="results-screen" class="hidden">
             <h2>Your Score: <span id="final-score"></span></h2>
             <form action="index.html">
-			<button type="submit">Restart Quiz</button>
+			<button id="restart-button" type="submit">Restart Quiz</button>
 		</form>
         </div>
     </div>
