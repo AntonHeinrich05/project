@@ -149,6 +149,7 @@ let analysis_questions = [
             "D": "f'(x) = (x² + 1) e^x",
             "E": "f'(x) = 2x + e^x"
         }
+    }
 ];
 
 
