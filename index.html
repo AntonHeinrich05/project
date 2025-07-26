@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en"> <!-- Changed language to English -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Archer</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e; /* Dark background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevents scrolling */
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none;   /* Chrome/Safari/Opera */
+            -khtml-user-select: none;    /* Konqueror */
+            -moz-user-select: none;      /* Firefox */
+            -ms-user-select: none;       /* Internet Explorer/Edge */
+            user-select: none;           /* Non-prefixed version, currently
+                                            not supported by any browser */
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Removed padding, border-radius, box-shadow to make it fill the screen */
+            position: relative;
+            overflow: hidden; /* Important for Game Over animation */
+            width: 100vw; /* Takes full viewport width */
+            height: 100vh; /* Takes full viewport height */
+            justify-content: space-between; /* Distributes space between Canvas and Buttons */
+            max-width: none; /* Removed max-width */
+            max-height: none; /* Removed max-height */
+        }
+        canvas {
+            background-color: #0f0f1a; /* Even darker background for game area */
+            display: block;
+            border-radius: 0; /* No rounded corners for full screen */
+            touch-action: none; /* Prevents default touch actions like scrolling */
+            width: 100%; /* Fills the width of the parent container */
+            height: 100%; /* Fills the height of the parent container */
+            flex-grow: 1; /* Allows the Canvas to take available space */
+        }
+        .button-container {
+            display: flex;
+            gap: 15px; /* Less space between buttons */
+            margin-top: 15px; /* Less space to Canvas */
+        }
+        .game-button {
+            background: linear-gradient(145deg, #00c6ff, #0072ff); /* More vibrant blue gradient */
+            color: white;
+            padding: 12px 20px; /* Smaller buttons */
+            border: none;
+            border-radius: 12px; /* Slightly less rounded */
+            cursor: pointer;
+            font-size: 1em; /* Smaller font */
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 198, 255, 0.6); /* Stronger, glowing shadow */
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px; /* Slight letter spacing */
+        }
+        .game-button:hover {
+            background: linear-gradient(145deg, #0072ff, #00c6ff);
+            transform: translateY(-3px) scale(1.01); /* More pronounced hover effect */
+            box-shadow: 0 6px 20px rgba(0, 198, 255, 0.8);
+        }
+        .game-button:active {
+            transform: translateY(0) scale(0.99);
+            box-shadow: 0 2px 8px rgba(0, 198, 255, 0.4);
+        }
+        .game-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.2); /* Brighter sheen */
+            border-radius: 50%;
+            transition: all 0.6s ease;
+            z-index: 0;
+            transform: translate(-50%, -50%) scale(0);
+        }
+        .game-button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0;
+        }
+        /* Removed message-box styles as it's no longer used */
+
+        /* Game UI elements */
+        .game-ui {
+            position: absolute;
+            top: 10px; /* Less distance from edge for full screen */
+            left: 10px;
+            color: white;
+            font-size: 1em; /* Smaller font */
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            gap: 5px; /* Less space between elements */
+            z-index: 50;
+            background-color: rgba(15, 15, 26, 0.7); /* Semi-transparent background */
+            padding: 8px 12px; /* Smaller padding for full screen */
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Start Screen Styles */
+        .start-screen, .game-over-screen {
+            position: fixed; /* Changed to fixed to cover entire viewport */
+            top: 0;
+            left: 0;
+            width: 100vw; /* Changed to 100vw */
+            height: 100vh; /* Changed to 100vh */
+            background-color: rgba(0, 0, 0, 0.95); /* Even more opaque */
+            backdrop-filter: blur(8px); /* Frosted glass effect */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align content to the top */
+            align-items: center;
+            color: white;
+            font-size: 1.2em;
+            text-align: center;
+            z-index: 100;
+            padding: 10px; /* Further reduced for mobile */
+            box-sizing: border-box; /* Include padding in size */
+            opacity: 1; /* For transitions */
+            transition: opacity 0.5s ease-in-out; /* Transition for fade in/out */
+        }
+        .start-screen.hidden, .game-over-screen.hidden {
+            opacity: 0;
+            pointer-events: none; /* Prevents interaction when hidden */
+        }
+
+        .start-screen h2 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            color: #00eaff;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.9);
+            letter-spacing: 1px;
+            flex-shrink: 0; /* Prevents title from shrinking */
+            margin-top: 20px; /* Some top margin */
+        }
+        .start-screen p { /* These rules are removed as texts are removed */
+            display: none;
+        }
+        .shop-section {
+            margin-top: 15px; /* Less space to title */
+            width: 95%;
+            max-width: 400px;
+            background-color: rgba(15, 15, 26, 0.95);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            flex-grow: 0; /* Changed so it doesn't take all space */
+            overflow-y: auto; /* Important: Makes the shop scrollable if too large */
+            -webkit-overflow-scrolling: touch; /* Improves scrolling on iOS */
+            margin-bottom: 10px; /* Space to button */
+            max-height: 60vh; /* Limits shop height to 60% of viewport height */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align content to top */
+        }
+
+        /* Scrollbar Styling for Webkit browsers (Chrome, Safari, iOS) */
+        .shop-section::-webkit-scrollbar {
+            width: 8px; /* Scrollbar width */
+            background-color: transparent; /* Makes background transparent */
+        }
+
+        .shop-section::-webkit-scrollbar-track {
+            background: rgba(0, 198, 255, 0.05); /* Light, transparent track */
+            border-radius: 10px;
+        }
+
+        .shop-section::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00c6ff, #0072ff); /* Neon gradient for thumb */
+            border-radius: 10px; /* Rounded thumb corners */
+            border: 1px solid rgba(0, 255, 255, 0.3); /* Light border */
+        }
+
+        .shop-section::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #0072ff, #00c6ff); /* Reverse gradient on hover */
+        }
+
+        .shop-section::-webkit-scrollbar-thumb:active {
+            background: #00eaff; /* Solid color on click */
+        }
+
+
+        .shop-section h3 {
+            margin-top: 5px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #7affd4;
+            text-shadow: 0 0 5px rgba(122, 255, 212, 0.7);
+        }
+        .total-points-display { /* New class for total points */
+            font-size: 1.1em; /* Slightly larger */
+            font-weight: bold;
+            color: #00eaff; /* Neon color */
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.9);
+            margin-top: 8px; /* Space to heading */
+            margin-bottom: 15px; /* Space to upgrades */
+            padding: 5px 10px;
+            border-radius: 8px;
+            background-color: rgba(0, 198, 255, 0.1); /* Light background */
+        }
+        .shop-item {
+            display: flex;
+            flex-direction: column; /* Stack items vertically on mobile */
+            align-items: flex-start; /* Align text to start */
+            padding: 8px 0; /* More padding */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Less prominent separator line */
+        }
+        .shop-item:last-child {
+            border-bottom: none;
+        }
+        .shop-item-info {
+            text-align: left;
+            font-size: 0.8em; /* Slightly larger */
+            line-height: 1.2;
+            margin-bottom: 4px; /* More space */
+        }
+        .shop-item-info strong {
+            color: #7affd4;
+            font-size: 0.9em; /* Slightly larger */
+            text-shadow: 0 0 2px rgba(122, 255, 212, 0.5);
+        }
+        .shop-item-button {
+            background: linear-gradient(145deg, #32cd32, #228b22);
+            color: white;
+            padding: 8px 15px; /* Larger button */
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 3px 8px rgba(50, 205, 50, 0.4);
+            letter-spacing: 0.5px;
+            width: 100%; /* Full width button on mobile */
+            font-size: 0.8em; /* Slightly larger */
+            margin-top: 5px; /* Space to text */
+        }
+        .shop-item-button:hover:not(:disabled) {
+            background: linear-gradient(145deg, #228b22, #32cd32);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(50, 205, 50, 0.6);
+        }
+        .shop-item-button:active {
+            transform: translateY(0) scale(0.99);
+            box-shadow: 0 2px 6px rgba(50, 205, 50, 0.4);
+        }
+        .shop-item-button:disabled {
+            background-color: #4a4a5a;
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+        }
+        .start-play-button { /* New class for start button */
+            margin-top: 20px; /* More space to shop area */
+            margin-bottom: 10px; /* Space to bottom edge */
+            flex-shrink: 0; /* Prevents title from shrinking */
+            padding: 18px 35px; /* Even larger button */
+            font-size: 1.4em; /* Larger font */
+            border-radius: 15px; /* Slightly more rounded */
+        }
+        .game-over-message {
+            font-size: 2.2em;
+            color: #ff6347;
+            text-shadow: 0 0 12px rgba(255, 99, 71, 0.9);
+            letter-spacing: 1px;
+            margin-bottom: 20px; /* Increased margin for spacing */
+            margin-top: 10vh; /* Push down from top for better centering */
+        }
+
+        .game-over-screen {
+            justify-content: flex-start; /* Align content to the top */
+            padding-top: 0; /* Remove padding top as margin-top on message handles it */
+        }
+
+        .game-over-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 25px;
+        }
+        .game-over-buttons .game-button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+        }
+
+        /* Game Over Screen specific styling */
+        .game-over-screen p {
+            font-size: 1.2em; /* Slightly larger font for readability */
+            margin-bottom: 10px; /* Space between lines */
+            color: #7affd4; /* Neon green color */
+            text-shadow: 0 0 5px rgba(122, 255, 212, 0.7); /* Subtle glow */
+        }
+        .game-over-screen p span {
+            color: #00eaff; /* Brighter neon blue for scores */
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.9); /* Stronger glow for scores */
+            font-weight: bold;
+        }
+
+
+        /* Media Queries for larger screens to revert some changes */
+        @media (min-width: 768px) {
+            .game-container {
+                /* On larger screens, revert to a contained look if preferred, or keep full screen */
+                /* For now, keeping full screen for consistency with mobile request */
+                padding: 0;
+                width: 100vw;
+                height: 100vh;
+            }
+            .button-container {
+                gap: 25px;
+                margin-top: 25px;
+            }
+            .game-button {
+                padding: 15px 30px;
+                font-size: 1.2em;
+            }
+            /* Removed message-box media queries */
+            .game-ui {
+                top: 20px;
+                left: 20px;
+                font-size: 1.3em;
+                gap: 8px;
+                padding: 15px 20px;
+            }
+            .start-screen, .game-over-screen {
+                padding: 30px;
+                font-size: 1.6em;
+            }
+            .start-screen h2 {
+                font-size: 3.8em;
+                margin-bottom: 30px;
+            }
+            .shop-section {
+                margin-top: 40px;
+                max-width: 600px;
+                padding: 30px;
+                max-height: 70vh; /* Slightly more space on larger screens */
+            }
+            .total-points-display {
+                font-size: 1.5em;
+                margin-bottom: 25px;
+            }
+            .shop-item {
+                flex-direction: row; /* Back to row layout on larger screens */
+                align-items: center;
+                padding: 15px 0;
+            }
+            .shop-item-info {
+                font-size: 1.05em;
+                margin-bottom: 0;
+            }
+            .shop-item-button {
+                padding: 12px 25px;
+                width: auto; /* Auto width button on larger screens */
+                font-size: 1.1em;
+            }
+            .start-play-button {
+                margin-top: 30px; /* More space on large screens */
+                padding: 20px 40px;
+                font-size: 1.6em;
+            }
+            .game-over-message {
+                font-size: 4.5em;
+                margin-bottom: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Audio elements for sounds -->
+        <audio id="bowDrawSound" preload="auto" onerror="console.error('Error loading bowdraw.mp3');"></audio>
+        <audio id="arrowShootSound" preload="auto" onerror="console.error('Error loading bowrelease.mp3');"></audio>
+        <audio id="obstacleHitSound" preload="auto" onerror="console.error('Error loading arrowhit.mp3');"></audio>
+        <audio id="targetHitSound" preload="auto" onerror="console.error('Error loading wow.mp3');"></audio>
+        <audio id="backgroundMusic" loop preload="auto" onerror="console.error('Error loading gamemusic.mp3');"></audio>
+        <audio id="upgradeSound" preload="auto" onerror="console.error('Error loading upgrade.mp3');"></audio>
+
+
+        <canvas id="gameCanvas"></canvas>
+        <div class="button-container" style="display: none;"> <!-- Buttons initially hidden -->
+            <button id="startButton" class="game-button">Start</button>
+            <button id="resetButton" class="game-button">Reset</button>
+        </div>
+
+        <!-- Game UI -->
+        <div class="game-ui">
+            <div id="arrowCountDisplay">Arrows: 50</div> <!-- Changed text to English -->
+            <div id="pointsDisplay">Points: 0</div> <!-- Changed text to English -->
+            <div id="highScoreDisplay">HIGHSCORE: 0</div> 
+        </div>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="start-screen">
+            <h2>Neon Archer</h2>
+            
+            <div class="shop-section">
+                <h3>Upgrades</h3>
+                <div class="total-points-display">
+                    YOUR NEON POINTS: <span id="startScreenPoints">0</span> <!-- Changed text to English -->
+                </div>
+                <div class="shop-item">
+                    <div class="shop-item-info" id="arrowsUpgradeInfoContainer">
+                        <strong>Expand Arrow Supply (Level <span id="arrowsUpgradeLevelDisplay">0</span>)</strong><br> <!-- Changed text to English -->
+                        <span>Increases your starting arrow count by 5 per level.</span> <!-- Changed text to English -->
+                    </div>
+                    <button class="shop-item-button" id="buyArrowsUpgrade">Buy (<span id="arrowsUpgradeCost">25P</span>)</button> <!-- Changed text to English -->
+                </div>
+                <div class="shop-item">
+                    <div class="shop-item-info" id="speedUpgradeInfoContainer">
+                        <strong>Obstacle Slowdown (Level <span id="speedUpgradeLevelDisplay">0</span>)</strong><br> <!-- Changed text to English -->
+                        <span>Decreases obstacle speed by 1% per level.</span> <!-- Changed text to English -->
+                    </div>
+                    <button class="shop-item-button" id="buySpeedUpgrade">Buy (<span id="speedUpgradeCost">25P</span>)</button> <!-- Changed text to English -->
+                </div>
+                <div class="shop-item">
+                    <div class="shop-item-info" id="indicatorUpgradeInfoContainer">
+                        <strong>Extend Aim Assist (Level <span id="indicatorUpgradeLevelDisplay">0</span>)</strong><br> <!-- Changed text to English -->
+                        <span>Extends your shot indicator range by 1% per level.</span> <!-- Changed text to English -->
+                    </div>
+                    <button class="shop-item-button" id="buyIndicatorUpgrade">Buy (<span id="indicatorUpgradeCost">25P</span>)</button> <!-- Changed text to English -->
+                </div>
+            </div>
+
+            <button id="startPlayButton" class="game-button start-play-button">Start Game</button> <!-- Changed text to English -->
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="game-over-screen hidden"> <!-- Initially hidden with 'hidden' class -->
+            <h2 class="game-over-message">GAME OVER!</h2> <!-- Changed text to English -->
+            <p>Points: <span id="roundPointsDisplay">0</span></p> <!-- Changed text to English -->
+            <p>Highscore: <span id="highestScoreDisplay">0</span></p> <!-- Changed text to English -->
+            <p>Total Points: <span id="totalPointsGameOverDisplay">0</span></p> <!-- Changed text to English -->
+            <div class="game-over-buttons">
+                <button id="restartGameButton" class="game-button">RESTART</button> <!-- Changed text to English -->
+                <button id="menuButton" class="game-button">MENU</button> <!-- Changed text to English -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Removed messageBox div as it's no longer used -->
+
+    <script>
+        // Game States
+        const GAME_STATES = {
+            START_SCREEN: 'start_screen',
+            GAME_PLAYING: 'game_playing',
+            GAME_OVER: 'game_over'
+        };
+        let currentGameState = GAME_STATES.START_SCREEN;
+
+        // Declare UI elements as 'let' in global scope
+        // Assignment happens within the window.onload listener
+        let canvas, ctx, startButton, resetButton, 
+            arrowCountDisplay, pointsDisplay, highScoreDisplay, startScreen, startScreenPoints, startPlayButton,
+            gameOverScreen, roundPointsDisplay, highestScoreDisplay, totalPointsGameOverDisplay,
+            buyArrowsUpgradeButton, arrowsUpgradeInfo, arrowsUpgradeCostDisplay, arrowsUpgradeLevelDisplay,
+            buySpeedUpgradeButton, speedUpgradeInfo, speedUpgradeCostDisplay, speedUpgradeLevelDisplay,
+            buyIndicatorUpgradeButton, indicatorUpgradeInfo, indicatorUpgradeCostDisplay, indicatorUpgradeLevelDisplay,
+            restartGameButton, menuButton,
+            bowDrawAudio, arrowShootAudio, obstacleHitAudio, targetHitAudio, backgroundMusic, upgradeSound;
+
+        // Game variables
+        let animationFrameId;
+        let arrowSpawnCooldown = false; 
+        let cooldownTimeoutId = null; 
+        let isBowstringSnappingBack = false; // Flag for bowstring animation
+        let initialChargePowerAtRelease = 0; // Stores charge at release
+        let initialAimAngleAtRelease = 0; // Stores aim angle at release for snapback
+        let snapbackAnimationStartTime = 0; // Start time of bowstring animation
+        const snapbackAnimationDuration = 250; // Duration of snapback animation in ms (slower)
+        let gameEndTimeoutId = null; // For Game Over Screen timer
+
+        // New variables for smooth aiming
+        let displayBowAngle = 0; // The angle the bow is visually drawn at
+        let aimAnimationStartTime = 0;
+        let startDisplayBowAngle = 0;
+        let targetDisplayBowAngle = 0;
+        const aimAnimationDuration = 150; // Duration for aiming animation in ms
+
+        // New variables for game area hit effect
+        let gameAreaHitEffectOpacity = 0;
+        let gameAreaHitEffectTime = 0;
+        const GAME_AREA_HIT_EFFECT_DURATION_MS = 1000; // Increased duration for game area glow
+
+
+        // --- Volume Settings ---
+        const DEFAULT_SOUND_VOLUME = 0.5; 
+        // --- End Volume Settings ---
+
+        // Helper functions for playing sounds
+        const playSound = (audioElement) => {
+            if (audioElement) {
+                audioElement.currentTime = 0; // Reset to start
+                audioElement.play().catch(e => console.error("Error playing sound:", e));
+            }
+        };
+
+        const playBackgroundMusic = () => {
+            if (backgroundMusic) {
+                backgroundMusic.loop = true;
+                backgroundMusic.volume = DEFAULT_SOUND_VOLUME;
+                console.log("Background music playing.");
+                backgroundMusic.play().catch(e => console.error("Error playing background music:", e));
+            }
+        };
+
+        const stopBackgroundMusic = () => {
+            if (backgroundMusic) {
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0;
+                console.log("Background music stopped.");
+            }
+        };
+
+        // Game settings / constants
+        const BASE_SCREEN_DIMENSION_FOR_SCALING = 600; // An arbitrary base to scale everything
+
+        const GAME_CONSTANTS = {
+            BOW_RADIUS: 25, 
+            ARROW_WIDTH: 40, 
+            ARROW_HEIGHT: 4, 
+            TARGET_RADIUS: 45, 
+            
+            OBSTACLE_LINE_WIDTH: 12, 
+            BASE_OBSTACLE_SEGMENT_HEIGHT: 100, 
+            BASE_OBSTACLE_GAP_HEIGHT: 95, 
+            
+            MAX_AIM_ANGLE: Math.PI / 3.5, 
+            NUM_OBSTACLE_COLUMNS: 5,
+            OBSTACLE_MIN_BASE_SPEED: 2.5, 
+            OBSTACLE_MAX_BASE_SPEED: 4.5, 
+            NUM_PARTICLES: 50, 
+            PARTICLE_LAYERS: 2, 
+            BASE_ARROW_COST: 25,
+            BASE_SPEED_COST: 25,
+            BASE_INDICATOR_COST: 25,
+            MIN_ARROW_SPEED: 8, 
+            MAX_ARROW_SPEED: 23, 
+            MAX_CHARGE: 100,
+            CHARGE_RATE: 3.0, 
+            INITIAL_ARROWS: 25,
+            ARROWS_PER_UPGRADE: 5,
+            SPEED_REDUCTION_PER_UPGRADE: 0.05,
+            INDICATOR_LENGTH_INITIAL_PERCENTAGE: 15,
+            INDICATOR_LENGTH_PER_UPGRADE: 2.5,
+            ARROW_DESPAWN_TIME_MS: 8000,
+            STUCK_ARROW_DURATION_MS: 5000,
+            HIT_ANIMATION_DURATION_MS: 150, // Increased duration for obstacle glow
+            TARGET_HIT_EFFECT_DECAY: 0.08,
+            TARGET_HIT_EFFECT_GROWTH: 2,
+            POINT_PER_STREAK_MULTIPLIER: 5,
+            OBSTACLE_SPEED_INCREASE_PER_TARGET: 0.0025,
+            ARROW_TIP_COLLISION_RADIUS: 6, // Made narrower
+            MAX_PULLBACK_DISTANCE: 30, // Slightly less pullback
+            ARROW_SPAWN_DELAY_MS: 200, 
+            NEW_TARGET_SPAWN_DELAY_MS: 300,
+            LAST_ARROW_MISS_GAMEOVER_DELAY_MS: 4000 // 4 seconds delay for game over on last arrow miss
+        };
+
+        // Object pools
+        const arrowPool = [];
+        const targetParticlePool = [];
+        const scorePopupPool = [];
+
+        // Game state
+        let totalPoints = 0; // Total points for upgrades (persisted)
+        let currentArrows = 0;
+        let streak = 0; // Current streak in the round
+        let roundPoints = 0; // Points in the current round
+        let targetsHitInRound = 0;
+        let highScore = 0; // Highest round points achieved (persisted)
+        let lastArrowFired = false; // New flag to track if the last arrow has been fired
+
+        // Upgrade levels and costs (persisted)
+        let arrowsUpgradeLevel = 0;
+        let speedUpgradeLevel = 0;
+        let indicatorUpgradeLevel = 0;
+
+        // Bow variables
+        const bow = {
+            x: 0,
+            y: 0,
+            radius: GAME_CONSTANTS.BOW_RADIUS,
+            color: '#ADD8E6'
+        };
+
+        // Arrow variables (activeArrows replaces previous 'arrows' variable)
+        let activeArrows = [];
+        let currentChargingArrow = {
+            x: 0, y: 0, width: GAME_CONSTANTS.ARROW_WIDTH, height: GAME_CONSTANTS.ARROW_HEIGHT, speed: 0, speedX: 0, speedY: 0, 
+            color: '#ADD8E6', stuck: false, stuckObstacle: null, chargeOffset: 0, aimAngle: 0,
+            stuckX: 0, stuckY: 0, stuckAngle: 0, spawnTime: 0, stuckObstacleInitialY: 0, active: true 
+        };
+
+        // Target variables
+        let target = {
+            x: 0, y: 0, radius: GAME_CONSTANTS.TARGET_RADIUS, color: '#00BFFF',
+            spawnAnimationProgress: 0, // 0 to 1 for fade-in animation on spawn
+            hitWaveRadius: 0, // For the expanding wave on hit
+            hitWaveOpacity: 0 // For the fading opacity of the wave on hit
+        };
+
+        // Charging variables
+        let isCharging = false;
+        let chargePower = 0;
+        const maxCharge = GAME_CONSTANTS.MAX_CHARGE;
+        const chargeRate = GAME_CONSTANTS.CHARGE_RATE;
+        const minArrowSpeed = GAME_CONSTANTS.MIN_ARROW_SPEED;
+        const maxArrowSpeed = GAME_CONSTANTS.MAX_ARROW_SPEED;
+        const maxAimAngle = GAME_CONSTANTS.MAX_AIM_ANGLE;
+
+        // Obstacle configuration
+        let obstacleColumns = [];
+
+        // Background particles
+        const particles = [];
+        // Particles for target hit
+        let activeTargetHitParticles = [];
+        // Score popups
+        let activeScorePopups = [];
+
+        // --- Helper functions for object pooling ---
+        function getArrowFromPool() {
+            if (arrowPool.length > 0) {
+                const arrow = arrowPool.pop();
+                arrow.active = true;
+                return arrow;
+            }
+            return {
+                x: 0, y: 0, width: 0, height: 0, speed: 0, speedX: 0, speedY: 0, 
+                color: '#ADD8E6', stuck: false, stuckObstacle: null, chargeOffset: 0, aimAngle: 0,
+                stuckX: 0, stuckY: 0, stuckAngle: 0, spawnTime: 0, stuckObstacleInitialY: 0, active: true
+            };
+        }
+
+        function returnArrowToPool(arrow) {
+            arrow.active = false;
+            arrowPool.push(arrow);
+        }
+
+        function getParticleFromPool() {
+            if (targetParticlePool.length > 0) {
+                const particle = targetParticlePool.pop();
+                particle.active = true;
+                return particle;
+            }
+            return {
+                x: 0, y: 0, radius: 0, color: '', speedX: 0, speedY: 0, opacity: 0, active: true
+            };
+        }
+
+        function returnParticleToPool(particle) {
+            particle.active = false;
+            targetParticlePool.push(particle);
+        }
+
+        function getScorePopupFromPool() {
+            if (scorePopupPool.length > 0) {
+                const popup = scorePopupPool.pop();
+                popup.active = true;
+                return popup;
+            }
+            return {
+                x: 0, y: 0, text: '', opacity: 0, life: 0, scale: 0, active: true
+            };
+        }
+
+        function returnScorePopupToPool(popup) {
+            popup.active = false;
+            scorePopupPool.push(popup);
+        }
+        // --- End helper functions for object pooling ---
+
+
+        // --- General helper functions ---
+        function calculateCost(baseCost, level) {
+            return baseCost + level * 25;
+        }
+
+        function getStartArrows() {
+            return GAME_CONSTANTS.INITIAL_ARROWS + arrowsUpgradeLevel * GAME_CONSTANTS.ARROWS_PER_UPGRADE;
+        }
+
+        function getObstacleBaseSpeedFactor() {
+            return Math.max(0.5, 1 - speedUpgradeLevel * GAME_CONSTANTS.SPEED_REDUCTION_PER_UPGRADE);
+        }
+
+        function getAimIndicatorLengthPercentage() {
+            return GAME_CONSTANTS.INDICATOR_LENGTH_INITIAL_PERCENTAGE + indicatorUpgradeLevel * GAME_CONSTANTS.INDICATOR_LENGTH_PER_UPGRADE;
+        }
+
+        function createParticles() {
+            particles.length = 0; 
+            for (let layer = 0; layer < GAME_CONSTANTS.PARTICLE_LAYERS; layer++) {
+                for (let i = 0; i < GAME_CONSTANTS.NUM_PARTICLES / GAME_CONSTANTS.PARTICLE_LAYERS; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        radius: Math.random() * 0.8 + 0.2,
+                        speed: (Math.random() * 0.3 + 0.1) * (layer + 1),
+                        color: `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`
+                    });
+                }
+            }
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                p.y += p.speed;
+                if (p.y > canvas.height) {
+                    p.y = 0;
+                    p.x = Math.random() * canvas.width;
+                }
+            });
+        }
+
+        function resizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            ctx.scale(dpr, dpr); // Scale context to match device pixel ratio
+
+            const scaleFactor = Math.min(canvas.width / dpr, canvas.height / dpr) / BASE_SCREEN_DIMENSION_FOR_SCALING;
+
+            bow.radius = GAME_CONSTANTS.BOW_RADIUS * scaleFactor;
+            currentChargingArrow.width = GAME_CONSTANTS.ARROW_WIDTH * scaleFactor;
+            currentChargingArrow.height = GAME_CONSTANTS.ARROW_HEIGHT * scaleFactor;
+            target.radius = GAME_CONSTANTS.TARGET_RADIUS * scaleFactor;
+
+            bow.x = canvas.width * 0.07 / dpr; 
+            bow.y = canvas.height / 2 / dpr; 
+            currentChargingArrow.y = bow.y; 
+
+            target.x = canvas.width / dpr - (canvas.width * 0.07 / dpr); 
+
+            initializeObstacleColumns();
+            setRandomTargetY();
+            createParticles();
+            console.log(`Canvas resized: width=${canvas.width/dpr}, height=${canvas.height/dpr}, DPR=${dpr}`);
+        }
+
+        function setRandomTargetY() {
+            const dpr = window.devicePixelRatio || 1;
+            const minOffset = canvas.height / dpr * 0.2;
+            const maxOffset = canvas.height / dpr * 0.8;
+            
+            target.y = minOffset + Math.random() * (maxOffset - minOffset);
+            target.x = canvas.width / dpr - (canvas.width / dpr * 0.07); 
+            target.spawnAnimationProgress = 0; // Reset animation progress for new target
+        }
+
+        function initializeObstacleColumns() {
+            obstacleColumns = [];
+            const dpr = window.devicePixelRatio || 1;
+            const scaleFactor = Math.min(canvas.width / dpr, canvas.height / dpr) / BASE_SCREEN_DIMENSION_FOR_SCALING; 
+
+            const obstacleAreaStartX = bow.x + (canvas.width / dpr * 0.40); 
+            const obstacleAreaEndX = canvas.width / dpr - (canvas.width / dpr * 0.20); 
+            
+            const effectiveObstacleWidth = Math.max(0, obstacleAreaEndX - obstacleAreaStartX);
+            const divisor = (GAME_CONSTANTS.NUM_OBSTACLE_COLUMNS > 1) ? (GAME_CONSTANTS.NUM_OBSTACLE_COLUMNS - 1) : 1;
+            const spacingX = (effectiveObstacleWidth / divisor) * 0.95; 
+
+            const scaledObstacleLineWidth = GAME_CONSTANTS.OBSTACLE_LINE_WIDTH * scaleFactor;
+            const scaledBaseObstacleSegmentHeight = GAME_CONSTANTS.BASE_OBSTACLE_SEGMENT_HEIGHT * scaleFactor;
+            const scaledBaseObstacleGapHeight = GAME_CONSTANTS.BASE_OBSTACLE_GAP_HEIGHT * scaleFactor;
+
+
+            for (let col = 0; col < GAME_CONSTANTS.NUM_OBSTACLE_COLUMNS; col++) {
+                const currentColumn = [];
+                const colX = obstacleAreaStartX + col * spacingX;
+                const columnDirection = (col % 2 === 0) ? 1 : -1;
+                const columnSpeed = (GAME_CONSTANTS.OBSTACLE_MIN_BASE_SPEED + Math.random() * (GAME_CONSTANTS.OBSTACLE_MAX_BASE_SPEED - GAME_CONSTANTS.OBSTACLE_MIN_BASE_SPEED)) * getObstacleBaseSpeedFactor();
+
+                let currentY = 0;
+                let segmentCount = 0;
+                while (currentY < canvas.height / dpr + scaledBaseObstacleSegmentHeight) { 
+                    const isGap = (segmentCount % 2 === 1);
+                    const segmentHeight = isGap ? scaledBaseObstacleGapHeight : scaledBaseObstacleSegmentHeight;
+
+                    currentColumn.push({
+                        x: colX,
+                        y: currentY,
+                        width: scaledObstacleLineWidth, 
+                        height: segmentHeight,
+                        isGap: isGap,
+                        speed: columnSpeed,
+                        direction: columnDirection,
+                        color: '#ADD8E6', 
+                        hitEffectTime: 0
+                    });
+                    currentY += segmentHeight;
+                    segmentCount++;
+                }
+                obstacleColumns.push(currentColumn);
+            }
+        }
+
+        // New function to reset all game elements for a new round
+        function resetGameElementsForNewRound() {
+            currentArrows = getStartArrows();
+            roundPoints = 0; 
+            streak = 0; 
+            targetsHitInRound = 0;
+            lastArrowFired = false; // Reset flag for new round
+            
+            // Clear all active game elements and reset pools
+            activeArrows.forEach(returnArrowToPool);
+            activeArrows = [];
+            activeTargetHitParticles.forEach(returnParticleToPool);
+            activeTargetHitParticles = [];
+            activeScorePopups.forEach(returnScorePopupToPool);
+            activeScorePopups = [];
+            arrowPool.length = 0; // Clear pools entirely
+            targetParticlePool.length = 0;
+            scorePopupPool.length = 0;
+
+            resetCurrentChargingArrow(); 
+            setRandomTargetY();
+            initializeObstacleColumns(); // Ensure obstacles are re-initialized
+            // Do NOT call updateUI() or setGameState() here, startGameRound() will handle it
+        }
+
+        // Initial application setup (called once on window.onload)
+        function initApplication() {
+            loadGameData(); // Load data on init to ensure latest scores/upgrades are shown
+            resizeCanvas(); // Initial canvas resize
+            createParticles(); // Create background particles
+            updateUI(); // Update UI for start screen
+            setGameState(GAME_STATES.START_SCREEN); // Set initial state to start screen
+            update(); // Start the animation loop
+        }
+
+        // Function to start a new game round (called by Start Game and Restart buttons)
+        function startGameRound() {
+            // Clear any pending game over timeout
+            if (gameEndTimeoutId) {
+                clearTimeout(gameEndTimeoutId);
+                gameEndTimeoutId = null;
+            }
+            resetGameElementsForNewRound(); // Reset all game elements
+            updateUI(); // Update UI with new game values
+            setGameState(GAME_STATES.GAME_PLAYING); // Immediately start game
+        }
+
+        // Function to go back to the menu (called by Menu button)
+        function goToMenu() {
+            stopBackgroundMusic();
+            setGameState(GAME_STATES.START_SCREEN);
+            updateUI(); // Update UI for start screen
+            // No need to reset game elements here, they will be reset by startGameRound()
+            // when a new game is initiated from the start screen.
+        }
+
+        function resetCurrentChargingArrow() {
+            // If a cooldown is active, clear the timer
+            if (cooldownTimeoutId) {
+                clearTimeout(cooldownTimeoutId);
+                cooldownTimeoutId = null;
+            }
+            arrowSpawnCooldown = false; // Reset cooldown
+            isBowstringSnappingBack = false; // Reset animation
+            snapbackAnimationStartTime = 0; // Reset animation time
+            chargePower = 0; // Reset charge so string is in resting position
+            currentChargingArrow.aimAngle = 0; // Reset arrow aim angle
+            displayBowAngle = 0; // Reset display bow angle
+
+            const dpr = window.devicePixelRatio || 1;
+            currentChargingArrow = {
+                x: bow.x + 5, 
+                y: bow.y,
+                width: GAME_CONSTANTS.ARROW_WIDTH * (Math.min(canvas.width/dpr, canvas.height/dpr) / BASE_SCREEN_DIMENSION_FOR_SCALING),
+                height: GAME_CONSTANTS.ARROW_HEIGHT * (Math.min(canvas.width/dpr, canvas.height/dpr) / BASE_SCREEN_DIMENSION_FOR_SCALING),
+                speed: 0, speedX: 0, speedY: 0, 
+                color: '#ADD8E6', stuck: false, stuckObstacle: null, chargeOffset: 0, aimAngle: 0,
+                stuckX: 0, stuckY: 0, stuckAngle: 0, spawnTime: 0, stuckObstacleInitialY: 0, active: true
+            };
+            isCharging = false;
+            // chargePower is already set to 0 here
+        }
+
+        function drawBow() {
+            ctx.strokeStyle = '#00BFFF';
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+
+            // Draw bow arms relative to the pivot (0,0)
+            ctx.beginPath();
+            ctx.moveTo(-15, -bow.radius * 1.8);
+            ctx.bezierCurveTo(
+                bow.radius * 0.5 - 5, -bow.radius * 2.2, // relative to pivot
+                bow.radius * 1.5 - 5, -bow.radius * 1.2, // relative to pivot
+                0, 0 // This is the pivot point
+            );
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(-15, bow.radius * 1.8);
+            ctx.bezierCurveTo(
+                bow.radius * 0.5 - 5, bow.radius * 2.2,
+                bow.radius * 1.5 - 5, bow.radius * 1.2,
+                0, 0
+            );
+            ctx.stroke();
+
+            // String attachment points relative to the pivot (0,0)
+            const stringTopAttachY = -bow.radius * 1.5;
+            const stringBottomAttachY = bow.radius * 1.5;
+
+            // The string's pull-back is now purely horizontal because the canvas is rotated.
+            // The arrow's nock is at (0,0) when not pulled back.
+            const arrowNockPullbackX = -(chargePower / maxCharge) * GAME_CONSTANTS.MAX_PULLBACK_DISTANCE;
+
+            ctx.strokeStyle = '#ADD8E6';
+            ctx.lineWidth = 2 + (chargePower / maxCharge) * 2;
+            
+            // Add glow when fully charged
+            if (chargePower >= maxCharge) {
+                ctx.shadowBlur = 20; 
+                ctx.shadowColor = `rgba(0, 255, 255, 1)`; // Strong glow
+            } else if (chargePower > 80) {
+                const glowAlpha = (chargePower - 80) / 20 * 0.8; 
+                ctx.shadowBlur = 15; 
+                ctx.shadowColor = `rgba(0, 255, 255, ${glowAlpha})`;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(0, stringTopAttachY); // String top attachment point (relative to pivot)
+            ctx.lineTo(arrowNockPullbackX, 0); // Arrow nock point (relative to pivot, pulled back horizontally)
+            ctx.lineTo(0, stringBottomAttachY); // String bottom attachment point (relative to pivot)
+            ctx.stroke();
+            ctx.shadowBlur = 0; 
+        }
+
+        function drawArrow(arrowToDraw) {
+            let arrowColor = '#00BFFF'; // Default blue
+            let arrowGlowStrength = 10;
+            let arrowGlowColor = '#00BFFF';
+
+            if (arrowToDraw === currentChargingArrow) {
+                // Charging arrow glow (no color change, just stronger glow)
+                arrowGlowStrength = 10 + (chargePower / maxCharge) * 40; // Glow from 10 to 50
+                arrowGlowColor = `rgba(0, 255, 255, ${chargePower / maxCharge})`; // Fading blue glow
+            } else if (arrowToDraw.speed > 0 && !arrowToDraw.stuck) { 
+                // Flying arrow retains glow from its charge state or default
+                // If it was fully charged when shot, give it max glow
+                if (initialChargePowerAtRelease >= maxCharge) { 
+                    arrowGlowStrength = 50; // Max glow for flying arrow if fully charged when shot
+                    arrowGlowColor = `rgba(0, 255, 255, 1)`;
+                } else {
+                    arrowGlowStrength = 25; // Good glow for flying arrow
+                    arrowGlowColor = `rgba(0, 255, 255, ${Math.min(1, arrowToDraw.speed / GAME_CONSTANTS.MAX_ARROW_SPEED * 1.5)})`;
+                }
+            } else {
+                // Stuck arrow or default
+                arrowGlowStrength = 10;
+                arrowGlowColor = '#00BFFF';
+            }
+
+            ctx.strokeStyle = arrowColor;
+            ctx.lineWidth = arrowToDraw.height;
+            ctx.shadowBlur = arrowGlowStrength;
+            ctx.shadowColor = arrowGlowColor;
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(arrowToDraw.width, 0);
+            ctx.stroke();
+
+            ctx.fillStyle = arrowColor;
+            ctx.beginPath();
+            ctx.moveTo(arrowToDraw.width, -arrowToDraw.height * 2);
+            ctx.lineTo(arrowToDraw.width + 10, 0);
+            ctx.lineTo(arrowToDraw.width, arrowToDraw.height * 2);
+            ctx.closePath();
+            ctx.fill();
+
+            const featherColor = '#ADD8E6';
+            const featherSize = arrowToDraw.height * 4;
+            const featherXOffset = 2.2;
+
+            ctx.fillStyle = featherColor;
+            ctx.beginPath();
+            ctx.moveTo(featherXOffset, 0);
+            ctx.lineTo(featherXOffset - featherSize, -featherSize / 2);
+            ctx.lineTo(featherXOffset - featherSize, featherSize / 2);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(featherXOffset - featherSize / 2, 0);
+            ctx.lineTo(featherXOffset - featherSize * 1.5, -featherSize / 2);
+            ctx.lineTo(featherXOffset - featherSize * 1.5, featherSize / 2);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.shadowBlur = 0; // Reset shadow for other elements
+        }
+
+        function drawAimIndicator() {
+            // Draw indicator only if charging and no cooldown/snapback is active
+            if (currentGameState !== GAME_STATES.GAME_PLAYING || !isCharging || arrowSpawnCooldown || isBowstringSnappingBack) return; 
+
+            ctx.save();
+            
+            const pivotX = bow.x + 5;
+            const pivotY = bow.y;
+            ctx.translate(pivotX, pivotY); // Move origin to bow's pivot
+            ctx.rotate(currentChargingArrow.aimAngle); // Rotate the entire context
+
+            const indicatorLength = canvas.width / (window.devicePixelRatio || 1) * (getAimIndicatorLengthPercentage() / 100);
+            const numDots = Math.floor(indicatorLength / 15);
+            const dotSpacing = indicatorLength / numDots;
+
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.5)';
+            ctx.shadowBlur = 5; 
+            ctx.shadowColor = 'rgba(200, 200, 200, 0.5)';
+
+            for (let i = 0; i < numDots; i++) {
+                const x = i * dotSpacing + (currentChargingArrow.width + 10); // Start dots after arrow tip
+                const y = 0;
+                ctx.beginPath();
+                ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.shadowBlur = 0; 
+            ctx.restore();
+        }
+
+
+        function drawTarget() {
+            ctx.save();
+            // Apply fade-in animation for spawning
+            ctx.globalAlpha = target.spawnAnimationProgress; // Only fade-in, no wave here
+
+            ctx.strokeStyle = target.color;
+            ctx.lineWidth = 5;
+            ctx.shadowBlur = 15; 
+            ctx.shadowColor = '#00BFFF';
+
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, target.radius * 0.6, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, target.radius * 0.3, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.shadowBlur = 0; 
+            ctx.restore(); // Restore globalAlpha and other context properties
+
+            // Draw hit wave animation (separate from target's alpha)
+            if (target.hitWaveOpacity > 0) {
+                ctx.strokeStyle = `rgba(0, 255, 255, ${target.hitWaveOpacity})`;
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.arc(target.x, target.y, target.hitWaveRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        function drawObstacles() {
+            obstacleColumns.forEach(column => {
+                column.forEach(obs => {
+                    if (!obs.isGap) {
+                        ctx.save();
+                        
+                        // Red shimmering effect for hit obstacles
+                        if (obs.hitEffectTime && (Date.now() - obs.hitEffectTime) < GAME_CONSTANTS.HIT_ANIMATION_DURATION_MS) {
+                            const elapsed = Date.now() - obs.hitEffectTime;
+                            const progress = Math.min(1, elapsed / GAME_CONSTANTS.HIT_ANIMATION_DURATION_MS);
+                            const opacity = 1 - progress; // Fades out
+                            const glowStrength = Math.sin(progress * Math.PI) * 35; // Even stronger shimmer effect
+
+                            ctx.strokeStyle = `rgba(255, 0, 0, ${opacity})`; // Red color
+                            ctx.shadowBlur = glowStrength; 
+                            ctx.shadowColor = `rgba(255, 0, 0, ${opacity})`;
+                        } else {
+                            ctx.strokeStyle = obs.color;
+                            ctx.shadowBlur = 0;
+                        }
+
+                        ctx.lineWidth = obs.width; 
+                        ctx.lineCap = 'round'; 
+
+                        ctx.beginPath();
+                        ctx.moveTo(obs.x, obs.y);
+                        ctx.lineTo(obs.x, obs.y + obs.height);
+                        ctx.stroke();
+                        
+                        ctx.restore(); // Restore context to remove shadow for other elements
+                    }
+                });
+            });
+        }
+
+        function drawScorePopups() {
+            activeScorePopups.forEach(popup => { 
+                if (popup.active) {
+                    ctx.save();
+                    ctx.globalAlpha = popup.opacity;
+                    ctx.fillStyle = 'white';
+                    ctx.font = `bold ${20 * popup.scale}px Inter`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(popup.text, popup.x, popup.y);
+                    ctx.restore();
+                }
+            });
+        }
+
+        function drawTargetHitParticles() {
+            activeTargetHitParticles.forEach(p => { 
+                if (p.active) {
+                    ctx.save();
+                    ctx.globalAlpha = p.opacity;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            });
+        }
+
+        function draw() {
+            const dpr = window.devicePixelRatio || 1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawParticles();
+
+            // Draw game area hit effect
+            if (gameAreaHitEffectOpacity > 0) {
+                ctx.save();
+                ctx.strokeStyle = `rgba(0, 255, 255, ${gameAreaHitEffectOpacity})`; // Green-blue
+                ctx.lineWidth = 25; // Even thicker border
+                ctx.shadowBlur = 50; // Even stronger glow
+                ctx.shadowColor = `rgba(0, 255, 255, ${gameAreaHitEffectOpacity})`;
+                ctx.strokeRect(0, 0, canvas.width / dpr, canvas.height / dpr); // Draw around the canvas
+                ctx.restore();
+            }
+
+            if (currentGameState === GAME_STATES.GAME_PLAYING) {
+                // Draw bow and charging arrow together with rotation
+                ctx.save();
+                const pivotX = bow.x + 5; // Fixed pivot point for the bow
+                const pivotY = bow.y;
+                ctx.translate(pivotX, pivotY); // Move origin to bow's pivot
+                
+                // Always rotate by displayBowAngle for visual bow movement
+                ctx.rotate(displayBowAngle); 
+                drawBow(); 
+
+                // Draw the charging arrow only if not in cooldown
+                if (!arrowSpawnCooldown) { 
+                    ctx.save();
+                    const arrowStartX = -(chargePower / maxCharge) * GAME_CONSTANTS.MAX_PULLBACK_DISTANCE;
+                    const arrowStartY = 0;
+                    ctx.translate(arrowStartX, arrowStartY);
+                    drawArrow(currentChargingArrow); 
+                    ctx.restore();
+                }
+                ctx.restore(); 
+
+                drawAimIndicator(); 
+
+                activeArrows.forEach(arrow => {
+                    ctx.save();
+                    ctx.translate(arrow.x, arrow.y);
+                    // For active arrows, apply their individual rotation based on speed
+                    ctx.rotate(Math.atan2(arrow.speedY, arrow.speedX));
+                    drawArrow(arrow);
+                    ctx.restore();
+                }); 
+                drawObstacles();
+                drawTarget();
+                drawTargetHitParticles();
+                drawScorePopups();
+            }
+        }
+
+        function update() {
+            if (currentGameState !== GAME_STATES.GAME_PLAYING) {
+                animationFrameId = requestAnimationFrame(update);
+                return;
+            }
+
+            const dpr = window.devicePixelRatio || 1;
+            obstacleColumns.forEach(column => {
+                const baseSpeedFactor = getObstacleBaseSpeedFactor();
+                column.forEach(obs => {
+                    const currentObstacleSpeed = obs.speed * (1 + targetsHitInRound * GAME_CONSTANTS.OBSTACLE_SPEED_INCREASE_PER_TARGET);
+                    obs.y += currentObstacleSpeed * obs.direction;
+
+                    if (obs.direction === 1 && obs.y > canvas.height / dpr) { 
+                        let highestYInColumn = Infinity;
+                        column.forEach(segment => {
+                            if (segment.y < highestYInColumn) {
+                                highestYInColumn = segment.y;
+                            }
+                        });
+                        obs.y = highestYInColumn - obs.height - GAME_CONSTANTS.BASE_OBSTACLE_GAP_HEIGHT;
+                    } else if (obs.direction === -1 && obs.y + obs.height < 0) {
+                        let lowestYInColumn = -Infinity;
+                        column.forEach(segment => {
+                            if (segment.y > lowestYInColumn) {
+                                lowestYInColumn = segment.y;
+                            }
+                        });
+                        obs.y = lowestYInColumn + obs.height + GAME_CONSTANTS.BASE_OBSTACLE_GAP_HEIGHT;
+                    }
+                });
+            });
+
+            // Update target spawn animation
+            if (target.spawnAnimationProgress < 1) {
+                target.spawnAnimationProgress += 0.02; // Slower fade-in
+                if (target.spawnAnimationProgress > 1) {
+                    target.spawnAnimationProgress = 1;
+                }
+            }
+
+            // Update target hit wave animation
+            if (target.hitWaveOpacity > 0) {
+                target.hitWaveRadius += GAME_CONSTANTS.TARGET_HIT_EFFECT_GROWTH;
+                target.hitWaveOpacity -= GAME_CONSTANTS.TARGET_HIT_EFFECT_DECAY;
+                if (target.hitWaveOpacity < 0) {
+                    target.hitWaveOpacity = 0;
+                    target.hitWaveRadius = 0;
+                }
+            }
+
+            // Update game area hit effect
+            if (gameAreaHitEffectOpacity > 0) {
+                const elapsed = Date.now() - gameAreaHitEffectTime;
+                const progress = Math.min(1, elapsed / GAME_AREA_HIT_EFFECT_DURATION_MS);
+                gameAreaHitEffectOpacity = 1 - progress; // Fade out
+                if (gameAreaHitEffectOpacity < 0) {
+                    gameAreaHitEffectOpacity = 0;
+                }
+            }
+
+
+            if (isCharging) {
+                chargePower = Math.min(maxCharge, chargePower + chargeRate);
+
+                // Smooth aiming animation for the *display* bow angle
+                const elapsed = Date.now() - aimAnimationStartTime;
+                const progress = Math.min(1, elapsed / aimAnimationDuration);
+                displayBowAngle = startDisplayBowAngle + (targetDisplayBowAngle - startDisplayBowAngle) * progress;
+                displayBowAngle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, displayBowAngle));
+
+            } else if (isBowstringSnappingBack) { // Logic for bowstring animation
+                const elapsed = Date.now() - snapbackAnimationStartTime;
+                const progress = Math.min(1, elapsed / snapbackAnimationDuration);
+                
+                // Interpolate charge power back to 0
+                chargePower = initialChargePowerAtRelease * (1 - progress); 
+                
+                // Interpolate display angle back to 0
+                displayBowAngle = initialAimAngleAtRelease * (1 - progress);
+
+                if (progress >= 1) {
+                    isBowstringSnappingBack = false;
+                    chargePower = 0; 
+                    displayBowAngle = 0; // Ensure display angle is 0 at the end
+                }
+            }
+
+            for (let i = activeArrows.length - 1; i >= 0; i--) {
+                const arrow = activeArrows[i];
+                if (!arrow.active) continue; 
+
+                if (arrow.stuck) {
+                    arrow.x = arrow.stuckX;
+                    arrow.y = arrow.stuckY + (arrow.stuckObstacle.y - arrow.stuckObstacleInitialY);
+
+                    if ((Date.now() - arrow.spawnTime) > GAME_CONSTANTS.STUCK_ARROW_DURATION_MS) {
+                        returnArrowToPool(arrow);
+                        activeArrows.splice(i, 1); 
+                        // If this was the last arrow and it got stuck, trigger game over
+                        if (lastArrowFired && activeArrows.length === 0) {
+                            setGameState(GAME_STATES.GAME_OVER);
+                        }
+                    }
+                } else {
+                    arrow.x += arrow.speedX;
+                    arrow.y += arrow.speedY;
+
+                    const arrowTipX = arrow.x + (arrow.width + 10) * Math.cos(Math.atan2(arrow.speedY, arrow.speedX)); 
+                    const arrowTipY = arrow.y + (arrow.width + 10) * Math.sin(Math.atan2(arrow.speedY, arrow.speedX));
+                    const collisionRadius = GAME_CONSTANTS.ARROW_TIP_COLLISION_RADIUS;
+
+                    let collisionDetected = false;
+                    let hitObstacle = null;
+
+                    for (let col = 0; col < obstacleColumns.length; col++) {
+                        const column = obstacleColumns[col];
+                        const obsX = column[0].x; 
+
+                        const columnMinX = obsX - collisionRadius;
+                        const columnMaxX = obsX + column[0].width + collisionRadius;
+
+                        if (arrowTipX >= columnMinX && arrowTipX <= columnMaxX) {
+                            for (let j = 0; j < column.length; j++) {
+                                const obs = column[j];
+                                if (!obs.isGap) {
+                                    const obsLeft = obs.x;
+                                    const obsRight = obs.x + obs.width;
+                                    const obsTop = obs.y;
+                                    const obsBottom = obs.y + obs.height;
+
+                                    if (arrowTipX + collisionRadius > obsLeft &&
+                                        arrowTipX - collisionRadius < obsRight &&
+                                        arrowTipY + collisionRadius > obsTop &&
+                                        arrowTipY - collisionRadius < obsBottom) {
+                                        collisionDetected = true;
+                                        hitObstacle = obs;
+                                        break; 
+                                    }
+                                }
+                            }
+                        }
+                        if (collisionDetected) break; 
+                    }
+
+                    if (collisionDetected) {
+                        arrow.stuck = true;
+                        arrow.stuckObstacle = hitObstacle;
+                        arrow.speedX = 0;
+                        arrow.speedY = 0;
+                        arrow.spawnTime = Date.now();
+                        arrow.stuckX = arrow.x; 
+                        arrow.stuckY = arrow.y; 
+                        arrow.stuckObstacleInitialY = hitObstacle.y; 
+                        arrow.stuckAngle = Math.atan2(arrow.speedY, arrow.speedX); 
+
+                        hitObstacle.hitEffectTime = Date.now();
+                        playSound(obstacleHitSound);
+                        streak = 0; // Reset streak on obstacle hit
+                        updateUI();
+                        saveGameData(); // Save data after streak reset
+
+                        // If this was the last arrow and it hit an obstacle, trigger game over immediately
+                        if (lastArrowFired && activeArrows.length === 0) {
+                            setGameState(GAME_STATES.GAME_OVER);
+                        }
+                    }
+                }
+
+                const dist = Math.sqrt(Math.pow(arrow.x - target.x, 2) + Math.pow(arrow.y - target.y, 2));
+                if (dist < target.radius) {
+                    target.hitWaveRadius = 0; // Reset for new wave
+                    target.hitWaveOpacity = 1; // Start opaque
+                    
+                    // Activate game area glow
+                    gameAreaHitEffectOpacity = 1;
+                    gameAreaHitEffectTime = Date.now();
+
+                    returnArrowToPool(arrow); 
+                    activeArrows.splice(i, 1); 
+                    playSound(targetHitSound);
+                    
+                    streak++;
+                    targetsHitInRound++;
+                    const pointsGained = GAME_CONSTANTS.POINT_PER_STREAK_MULTIPLIER * streak;
+                    totalPoints += pointsGained;
+                    roundPoints += pointsGained;
+
+                    // Update highscore if current round points are higher
+                    if (roundPoints > highScore) {
+                        highScore = roundPoints;
+                    }
+
+                    const popup = getScorePopupFromPool(); 
+                    popup.x = target.x;
+                    popup.y = target.y;
+                    popup.text = `+${pointsGained}`;
+                    popup.opacity = 1;
+                    popup.life = 60;
+                    popup.scale = 1;
+                    activeScorePopups.push(popup);
+
+                    for (let p = 0; p < 20; p++) { 
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = (Math.random() * 2 + 0.5); // Slower particles
+                        const particle = getParticleFromPool(); 
+                        particle.x = target.x;
+                        particle.y = target.y;
+                        particle.radius = Math.random() * 2 + 1;
+                        particle.color = `rgba(0, 255, 255, ${Math.random() * 0.8 + 0.2})`;
+                        particle.speedX = Math.cos(angle) * speed;
+                        particle.speedY = Math.sin(angle) * speed;
+                        particle.opacity = 1;
+                        activeTargetHitParticles.push(particle);
+                    }
+
+                    updateUI();
+                    saveGameData(); // Save data after points/highscore update
+
+                    // Spawn new target after delay
+                    setTimeout(() => {
+                        setRandomTargetY(); // This sets target.spawnAnimationProgress = 0
+                    }, GAME_CONSTANTS.NEW_TARGET_SPAWN_DELAY_MS);
+
+                    // If this was the last arrow and it hit the target, trigger game over immediately
+                    if (lastArrowFired && activeArrows.length === 0) {
+                        setGameState(GAME_STATES.GAME_OVER);
+                    }
+                }
+
+                // Arrow leaves screen
+                if (!arrow.stuck && (arrow.x > canvas.width / dpr + arrow.width || arrow.x < -arrow.width || arrow.y > canvas.height / dpr + arrow.height || arrow.y < -arrow.height)) { 
+                    returnArrowToPool(arrow); 
+                    activeArrows.splice(i, 1); 
+                    streak = 0; // Reset streak on miss
+                    updateUI();
+                    saveGameData(); // Save data after streak reset
+
+                    // If this was the last arrow and it went off-screen, trigger game over after delay
+                    if (lastArrowFired && activeArrows.length === 0) {
+                        if (gameEndTimeoutId) clearTimeout(gameEndTimeoutId); // Clear any existing timeout
+                        gameEndTimeoutId = setTimeout(() => {
+                            setGameState(GAME_STATES.GAME_OVER);
+                        }, GAME_CONSTANTS.LAST_ARROW_MISS_GAMEOVER_DELAY_MS);
+                    }
+                } else if (!arrow.stuck && (Date.now() - arrow.spawnTime) > GAME_CONSTANTS.ARROW_DESPAWN_TIME_MS) {
+                     // Arrow despawns after a set time if it hasn't hit anything
+                     returnArrowToPool(arrow); 
+                     activeArrows.splice(i, 1); 
+                     streak = 0; // Reset streak if arrow despawns
+                     updateUI();
+                     saveGameData(); // Save data after streak reset
+
+                     // If this was the last arrow and it despawned, trigger game over after delay
+                     if (lastArrowFired && activeArrows.length === 0) {
+                        if (gameEndTimeoutId) clearTimeout(gameEndTimeoutId); // Clear any existing timeout
+                        gameEndTimeoutId = setTimeout(() => {
+                            setGameState(GAME_STATES.GAME_OVER);
+                        }, GAME_CONSTANTS.LAST_ARROW_MISS_GAMEOVER_DELAY_MS);
+                    }
+                }
+            }
+
+            for (let i = activeTargetHitParticles.length - 1; i >= 0; i--) {
+                const p = activeTargetHitParticles[i];
+                if (!p.active) continue; 
+
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.opacity -= 0.015; // Slower fade
+                if (p.opacity <= 0) {
+                    returnParticleToPool(p); 
+                    activeTargetHitParticles.splice(i, 1); 
+                }
+            }
+
+            for (let i = activeScorePopups.length - 1; i >= 0; i--) {
+                const popup = activeScorePopups[i];
+                if (!popup.active) continue;
+
+                popup.y -= 1;
+                popup.opacity -= 1 / popup.life;
+                popup.scale += 0.01;
+                if (popup.opacity <= 0) {
+                    returnScorePopupToPool(popup); 
+                    activeScorePopups.splice(i, 1); 
+                }
+            }
+
+            draw();
+            animationFrameId = requestAnimationFrame(update);
+        }
+
+        function checkCollisionPoint(pointX, pointY, radius, targetObj) {
+            const dist = Math.sqrt(Math.pow(pointX - targetObj.x, 2) + Math.pow(pointY - targetObj.y, 2));
+            return dist < targetObj.radius;
+        }
+
+        function updateUI() {
+            if (arrowCountDisplay) arrowCountDisplay.textContent = `Arrows: ${currentArrows}`; 
+            if (pointsDisplay) pointsDisplay.textContent = `Points: ${roundPoints}`; 
+            if (highScoreDisplay) highScoreDisplay.textContent = `HIGHSCORE: ${highScore}`; 
+
+            if (startScreenPoints) startScreenPoints.textContent = totalPoints; 
+            
+            if (arrowsUpgradeLevelDisplay) arrowsUpgradeLevelDisplay.textContent = arrowsUpgradeLevel;
+            if (speedUpgradeLevelDisplay) speedUpgradeLevelDisplay.textContent = speedUpgradeLevel;
+            if (indicatorUpgradeLevelDisplay) indicatorUpgradeLevelDisplay.textContent = indicatorUpgradeLevel;
+
+            if (arrowsUpgradeInfo) {
+                arrowsUpgradeInfo.innerHTML = `<strong>Expand Arrow Supply (Level <span id="arrowsUpgradeLevelDisplay">${arrowsUpgradeLevel}</span>)</strong><br><span>Increases your starting arrow count by 5 per level.</span>`; 
+            }
+            if (arrowsUpgradeCostDisplay) arrowsUpgradeCostDisplay.textContent = calculateCost(GAME_CONSTANTS.BASE_ARROW_COST, arrowsUpgradeLevel) + 'P';
+            if (buyArrowsUpgradeButton) buyArrowsUpgradeButton.disabled = totalPoints < calculateCost(GAME_CONSTANTS.BASE_ARROW_COST, arrowsUpgradeLevel);
+
+            if (speedUpgradeInfo) {
+                speedUpgradeInfo.innerHTML = `<strong>Obstacle Slowdown (Level <span id="speedUpgradeLevelDisplay">${speedUpgradeLevel}</span>)</strong><br><span>Decreases obstacle speed by 1% per level.</span>`; 
+            }
+            if (speedUpgradeCostDisplay) speedUpgradeCostDisplay.textContent = calculateCost(GAME_CONSTANTS.BASE_SPEED_COST, speedUpgradeLevel) + 'P';
+            if (buySpeedUpgradeButton) buySpeedUpgradeButton.disabled = totalPoints < calculateCost(GAME_CONSTANTS.BASE_SPEED_COST, speedUpgradeLevel);
+
+            if (indicatorUpgradeInfo) {
+                indicatorUpgradeInfo.innerHTML = `<strong>Extend Aim Assist (Level <span id="indicatorUpgradeLevelDisplay">${indicatorUpgradeLevel}</span>)</strong><br><span>Extends your shot indicator range to ${getAimIndicatorLengthPercentage()}% of screen width.</span>`; 
+            }
+            if (indicatorUpgradeCostDisplay) indicatorUpgradeCostDisplay.textContent = calculateCost(GAME_CONSTANTS.BASE_INDICATOR_COST, indicatorUpgradeLevel) + 'P';
+            if (buyIndicatorUpgradeButton) buyIndicatorUpgradeButton.disabled = totalPoints < calculateCost(GAME_CONSTANTS.BASE_INDICATOR_COST, indicatorUpgradeLevel);
+        }
+
+        function setGameState(newState) {
+            // Hide all screens initially for clean transitions
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            canvas.style.display = 'none';
+            document.querySelector('.game-ui').style.display = 'none';
+            document.querySelector('.button-container').style.display = 'none'; // Ensure game buttons are hidden
+
+            // Use a timeout to allow CSS transitions to play before changing display
+            setTimeout(() => {
+                currentGameState = newState;
+                if (newState === GAME_STATES.START_SCREEN) {
+                    startScreen.classList.remove('hidden');
+                    stopBackgroundMusic();
+                    updateUI();
+                } else if (newState === GAME_STATES.GAME_PLAYING) {
+                    canvas.style.display = 'block';
+                    document.querySelector('.game-ui').style.display = 'flex';
+                    playBackgroundMusic();
+                } else if (newState === GAME_STATES.GAME_OVER) {
+                    gameOverScreen.classList.remove('hidden');
+                    if (roundPointsDisplay) roundPointsDisplay.textContent = roundPoints;
+                    if (highestScoreDisplay) highestScoreDisplay.textContent = highScore; 
+                    if (totalPointsGameOverDisplay) totalPointsGameOverDisplay.textContent = totalPoints;
+                    stopBackgroundMusic();
+                    saveGameData(); // Save data when game is over
+                }
+            }, 50); // Small delay to allow opacity transition to start
+        }
+
+        // --- Local Storage Functions ---
+        function saveGameData() {
+            const gameData = {
+                totalPoints: totalPoints,
+                highScore: highScore, 
+                arrowsUpgradeLevel: arrowsUpgradeLevel,
+                speedUpgradeLevel: speedUpgradeLevel,
+                indicatorUpgradeLevel: indicatorUpgradeLevel
+            };
+            localStorage.setItem('neonArcherGameData', JSON.stringify(gameData));
+            console.log("Game data saved:", gameData);
+        }
+
+        function loadGameData() {
+            const savedData = localStorage.getItem('neonArcherGameData');
+            if (savedData) {
+                const gameData = JSON.parse(savedData);
+                totalPoints = gameData.totalPoints || 0;
+                highScore = gameData.highScore || 0; 
+                arrowsUpgradeLevel = gameData.arrowsUpgradeLevel || 0;
+                speedUpgradeLevel = gameData.speedUpgradeLevel || 0;
+                indicatorUpgradeLevel = gameData.indicatorUpgradeLevel || 0;
+                console.log("Game data loaded:", gameData);
+            } else {
+                console.log("No saved game data found.");
+            }
+            updateUI(); // Update UI after loading
+        }
+
+        // --- Event Listeners ---
+        window.onload = function() { 
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+
+            // Removed unused elements: startButton, resetButton, messageBox, messageText, messageBoxOk
+            arrowCountDisplay = document.getElementById('arrowCountDisplay');
+            pointsDisplay = document.getElementById('pointsDisplay');
+            highScoreDisplay = document.getElementById('highScoreDisplay'); 
+
+            startScreen = document.getElementById('startScreen');
+            startScreenPoints = document.getElementById('startScreenPoints');
+            startPlayButton = document.getElementById('startPlayButton');
+
+            gameOverScreen = document.getElementById('gameOverScreen');
+            roundPointsDisplay = document.getElementById('roundPointsDisplay');
+            highestScoreDisplay = document.getElementById('highestScoreDisplay'); 
+            totalPointsGameOverDisplay = document.getElementById('totalPointsGameOverDisplay');
+            restartGameButton = document.getElementById('restartGameButton'); 
+            menuButton = document.getElementById('menuButton'); 
+
+            buyArrowsUpgradeButton = document.getElementById('buyArrowsUpgrade');
+            arrowsUpgradeInfo = document.getElementById('arrowsUpgradeInfoContainer');
+            arrowsUpgradeCostDisplay = document.getElementById('arrowsUpgradeCost');
+            arrowsUpgradeLevelDisplay = document.getElementById('arrowsUpgradeLevelDisplay');
+
+            buySpeedUpgradeButton = document.getElementById('buySpeedUpgrade');
+            speedUpgradeInfo = document.getElementById('speedUpgradeInfoContainer');
+            speedUpgradeCostDisplay = document.getElementById('speedUpgradeCost');
+            speedUpgradeLevelDisplay = document.getElementById('speedUpgradeLevelDisplay');
+
+            buyIndicatorUpgradeButton = document.getElementById('buyIndicatorUpgrade');
+            indicatorUpgradeInfo = document.getElementById('indicatorUpgradeInfoContainer');
+            indicatorUpgradeCostDisplay = document.getElementById('indicatorUpgradeCost');
+            indicatorUpgradeLevelDisplay = document.getElementById('indicatorUpgradeLevelDisplay');
+
+            bowDrawAudio = document.getElementById('bowDrawSound');
+            arrowShootAudio = document.getElementById('arrowShootSound');
+            obstacleHitAudio = document.getElementById('obstacleHitSound');
+            targetHitAudio = document.getElementById('targetHitSound');
+            backgroundMusic = document.getElementById('backgroundMusic');
+            upgradeSound = document.getElementById('upgradeSound');
+
+            const setAudioSources = () => {
+                if (bowDrawAudio) bowDrawAudio.src = './assets/audio/bowdraw.mp3';
+                if (arrowShootAudio) arrowShootAudio.src = './assets/audio/bowrelease.mp3';
+                if (obstacleHitAudio) obstacleHitAudio.src = './assets/audio/arrowhit.mp3';
+                if (targetHitAudio) targetHitAudio.src = './assets/audio/wow.mp3';
+                if (backgroundMusic) backgroundMusic.src = './assets/audio/gamemusic.mp3';
+                if (upgradeSound) upgradeSound.src = './assets/audio/upgrade.mp3';
+                console.log('HTML: Audio sources set from relative paths.');
+            };
+
+            setAudioSources();
+            
+            if (bowDrawAudio) bowDrawAudio.volume = DEFAULT_SOUND_VOLUME;
+            if (arrowShootAudio) arrowShootAudio.volume = DEFAULT_SOUND_VOLUME;
+            if (obstacleHitAudio) obstacleHitAudio.volume = DEFAULT_SOUND_VOLUME;
+            if (targetHitAudio) targetHitAudio.volume = DEFAULT_SOUND_VOLUME;
+            if (backgroundMusic) backgroundMusic.volume = DEFAULT_SOUND_VOLUME;
+            if (upgradeSound) upgradeSound.volume = DEFAULT_SOUND_VOLUME;
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (currentGameState === GAME_STATES.GAME_PLAYING && !isCharging && !arrowSpawnCooldown && !isBowstringSnappingBack) {
+                    isCharging = true;
+                    chargePower = 0;
+                    
+                    aimAnimationStartTime = Date.now(); // Start time for aiming animation
+                    startDisplayBowAngle = displayBowAngle; // Current visual angle of the bow
+
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = (e.clientX - rect.left) * (window.devicePixelRatio || 1); 
+                    const mouseY = (e.clientY - rect.top) * (window.devicePixelRatio || 1); 
+                    
+                    const deltaX = mouseX - (bow.x * (window.devicePixelRatio || 1) + 5); 
+                    const deltaY = mouseY - (bow.y * (window.devicePixelRatio || 1));
+                    
+                    // This is the actual angle the arrow will be shot at, and the target for the bow animation
+                    currentChargingArrow.aimAngle = Math.atan2(deltaY, deltaX);
+                    currentChargingArrow.aimAngle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, currentChargingArrow.aimAngle));
+                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // The target angle for the bow's visual animation
+                    
+                    playSound(bowDrawAudio);
+                }
+            });
+
+            canvas.addEventListener('mouseup', (e) => {
+                if (currentGameState === GAME_STATES.GAME_PLAYING && isCharging) {
+                    isCharging = false;
+                    if (currentArrows > 0) {
+                        currentArrows--;
+                        if (currentArrows === 0) { // Check if this is the last arrow being fired
+                            lastArrowFired = true;
+                        }
+
+                        const totalSpeed = (GAME_CONSTANTS.MIN_ARROW_SPEED + (chargePower / GAME_CONSTANTS.MAX_CHARGE) * (GAME_CONSTANTS.MAX_ARROW_SPEED - GAME_CONSTANTS.MIN_ARROW_SPEED)) * 1.2;
+                        
+                        const newArrow = getArrowFromPool(); 
+                        Object.assign(newArrow, {
+                            x: currentChargingArrow.x,
+                            y: currentChargingArrow.y,
+                            width: currentChargingArrow.width,
+                            height: currentChargingArrow.height,
+                            speed: totalSpeed,
+                            speedX: totalSpeed * Math.cos(currentChargingArrow.aimAngle), 
+                            speedY: totalSpeed * Math.sin(currentChargingArrow.aimAngle), 
+                            color: currentChargingArrow.color, // Retain color from charging
+                            stuck: false,
+                            stuckObstacle: null,
+                            spawnTime: Date.now(),
+                            stuckInitialY: 0,
+                            stuckObstacleInitialY: 0,
+                            aimAngle: currentChargingArrow.aimAngle, 
+                            stuckX: 0, stuckY: 0, stuckAngle: 0,
+                            active: true
+                        });
+                        activeArrows.push(newArrow); 
+                        
+                        // Start bowstring animation
+                        initialChargePowerAtRelease = chargePower; 
+                        initialAimAngleAtRelease = currentChargingArrow.aimAngle; // Store angle at release
+                        snapbackAnimationStartTime = Date.now();
+                        isBowstringSnappingBack = true;
+
+                        // Start cooldown
+                        arrowSpawnCooldown = true;
+                        cooldownTimeoutId = setTimeout(() => {
+                            resetCurrentChargingArrow(); // Resets arrow and ends cooldown
+                        }, GAME_CONSTANTS.ARROW_SPAWN_DELAY_MS);
+
+                        playSound(arrowShootAudio);
+                        updateUI();
+                        saveGameData();
+
+                        // Game over logic moved to arrow update loop to check last arrow's fate
+                    } else {
+                        // If no arrows left to fire, immediately go to game over
+                        setGameState(GAME_STATES.GAME_OVER);
+                    }
+                }
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                // Aim angle can be changed by mouse movement while charging
+                if (currentGameState === GAME_STATES.GAME_PLAYING && isCharging && !arrowSpawnCooldown && !isBowstringSnappingBack) {
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = (e.clientX - rect.left) * (window.devicePixelRatio || 1); 
+                    const mouseY = (e.clientY - rect.top) * (window.devicePixelRatio || 1); 
+                    
+                    const deltaX = mouseX - (bow.x * (window.devicePixelRatio || 1) + 5); 
+                    const deltaY = mouseY - (bow.y * (window.devicePixelRatio || 1));
+                    let angle = Math.atan2(deltaY, deltaX);
+
+                    angle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, angle));
+                    currentChargingArrow.aimAngle = angle;
+                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Update target for smooth aim
+                }
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (currentGameState === GAME_STATES.GAME_PLAYING && !isCharging && !arrowSpawnCooldown && !isBowstringSnappingBack) {
+                    isCharging = true;
+                    chargePower = 0;
+                    
+                    aimAnimationStartTime = Date.now(); // Start time for aiming animation
+                    startDisplayBowAngle = displayBowAngle; // Current visual angle of the bow
+
+                    const rect = canvas.getBoundingClientRect();
+                    const touchX = (e.touches[0].clientX - rect.left) * (window.devicePixelRatio || 1); 
+                    const touchY = (e.touches[0].clientY - rect.top) * (window.devicePixelRatio || 1); 
+                    
+                    const deltaX = touchX - (bow.x * (window.devicePixelRatio || 1) + 5); 
+                    const deltaY = touchY - (bow.y * (window.devicePixelRatio || 1));
+                    let angle = Math.atan2(deltaY, deltaX);
+                    angle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, angle));
+                    currentChargingArrow.aimAngle = angle; 
+                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Update target for smooth aim
+                    
+                    playSound(bowDrawAudio);
+                }
+            });
+
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (currentGameState === GAME_STATES.GAME_PLAYING && isCharging) {
+                    isCharging = false;
+                    if (currentArrows > 0) {
+                        currentArrows--;
+                        if (currentArrows === 0) { // Check if this is the last arrow being fired
+                            lastArrowFired = true;
+                        }
+
+                        const totalSpeed = (GAME_CONSTANTS.MIN_ARROW_SPEED + (chargePower / GAME_CONSTANTS.MAX_CHARGE) * (GAME_CONSTANTS.MAX_ARROW_SPEED - GAME_CONSTANTS.MIN_ARROW_SPEED)) * 1.2;
+                        
+                        const newArrow = getArrowFromPool(); 
+                        Object.assign(newArrow, {
+                            x: currentChargingArrow.x,
+                            y: currentChargingArrow.y,
+                            width: currentChargingArrow.width,
+                            height: currentChargingArrow.height,
+                            speed: totalSpeed,
+                            speedX: totalSpeed * Math.cos(currentChargingArrow.aimAngle), 
+                            speedY: totalSpeed * Math.sin(currentChargingArrow.aimAngle), 
+                            color: currentChargingArrow.color, // Retain color from charging
+                            stuck: false,
+                            stuckObstacle: null,
+                            spawnTime: Date.now(),
+                            stuckInitialY: 0,
+                            stuckObstacleInitialY: 0,
+                            aimAngle: currentChargingArrow.aimAngle, 
+                            stuckX: 0, stuckY: 0, stuckAngle: 0,
+                            active: true
+                        });
+                        activeArrows.push(newArrow); 
+
+                        // Start bowstring animation
+                        initialChargePowerAtRelease = chargePower; 
+                        initialAimAngleAtRelease = currentChargingArrow.aimAngle; // Store angle at release
+                        snapbackAnimationStartTime = Date.now();
+                        isBowstringSnappingBack = true;
+
+                        // Start cooldown
+                        arrowSpawnCooldown = true;
+                        cooldownTimeoutId = setTimeout(() => {
+                            resetCurrentChargingArrow(); // Resets arrow and ends cooldown
+                        }, GAME_CONSTANTS.ARROW_SPAWN_DELAY_MS);
+
+                        playSound(arrowShootAudio);
+                        updateUI();
+                        saveGameData();
+
+                        // Game over logic moved to arrow update loop to check last arrow's fate
+                    } else {
+                        // If no arrows left to fire, immediately go to game over
+                        setGameState(GAME_STATES.GAME_OVER);
+                    }
+                }
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                // Aim angle can be changed by touch movement while charging
+                if (currentGameState === GAME_STATES.GAME_PLAYING && isCharging && !arrowSpawnCooldown && !isBowstringSnappingBack) {
+                    const rect = canvas.getBoundingClientRect();
+                    const touchX = (e.touches[0].clientX - rect.left) * (window.devicePixelRatio || 1); 
+                    const touchY = (e.touches[0].clientY - rect.top) * (window.devicePixelRatio || 1); 
+                    
+                    const deltaX = touchX - (bow.x * (window.devicePixelRatio || 1) + 5); 
+                    const deltaY = touchY - (bow.y * (window.devicePixelRatio || 1));
+                    
+                    let angle = Math.atan2(deltaY, deltaX);
+
+                    angle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, angle));
+                    currentChargingArrow.aimAngle = angle;
+                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Update target for smooth aim
+                }
+            });
+
+            startPlayButton.addEventListener('click', () => {
+                startGameRound(); // Call the new streamlined function
+            });
+
+            buyArrowsUpgradeButton.addEventListener('click', () => {
+                const cost = calculateCost(GAME_CONSTANTS.BASE_ARROW_COST, arrowsUpgradeLevel);
+                if (totalPoints >= cost) {
+                    totalPoints -= cost;
+                    arrowsUpgradeLevel++;
+                    updateUI();
+                    playSound(upgradeSound);
+                    saveGameData();
+                } 
+            });
+
+            buySpeedUpgradeButton.addEventListener('click', () => {
+                const cost = calculateCost(GAME_CONSTANTS.BASE_SPEED_COST, speedUpgradeLevel);
+                if (totalPoints >= cost) {
+                    totalPoints -= cost;
+                    speedUpgradeLevel++;
+                    updateUI();
+                    playSound(upgradeSound);
+                    initializeObstacleColumns();
+                    saveGameData();
+                } 
+            });
+
+            buyIndicatorUpgradeButton.addEventListener('click', () => {
+                const cost = calculateCost(GAME_CONSTANTS.BASE_INDICATOR_COST, indicatorUpgradeLevel);
+                if (totalPoints >= cost) {
+                    totalPoints -= cost;
+                    indicatorUpgradeLevel++;
+                    updateUI();
+                    playSound(upgradeSound);
+                    saveGameData();
+                } 
+            });
+
+            // Game Over Screen Buttons
+            restartGameButton.addEventListener('click', () => {
+                startGameRound(); // Call the new streamlined function
+            });
+
+            menuButton.addEventListener('click', () => {
+                goToMenu(); // Call the new streamlined function
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+
+            initApplication(); // Start the application
+        }; // End of window.onload
+    </script>
+</body>
+</html>
