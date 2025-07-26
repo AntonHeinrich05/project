@@ -1,78 +1,90 @@
 <!DOCTYPE html>
-<html lang="en"> <!-- Changed language to English -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Neon Archer</title>
     <style>
+        /* WICHTIG: Stellt sicher, dass HTML und Body die volle Höhe des Viewports einnehmen */
+        html, body {
+            height: 100%;
+        }
+
+        /* Grundlegende Stildefinitionen für den Body */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1a1a2e; /* Dark background */
+            background-color: #1a1a2e; /* Dunkler Hintergrund für das Spiel */
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: 100vh; /* Mindesthöhe des Viewports */
             margin: 0;
-            overflow: hidden; /* Prevents scrolling */
-            -webkit-touch-callout: none; /* iOS Safari */
-            -webkit-user-select: none;   /* Chrome/Safari/Opera */
-            -khtml-user-select: none;    /* Konqueror */
-            -moz-user-select: none;      /* Firefox */
-            -ms-user-select: none;       /* Internet Explorer/Edge */
-            user-select: none;           /* Non-prefixed version, currently
-                                            not supported by any browser */
+            overflow: hidden; /* Verhindert Scrollen */
+            /* Deaktiviert Textauswahl und Callouts auf Touch-Geräten für ein besseres Spielerlebnis */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
+        /* Container für das gesamte Spiel, nimmt den gesamten Viewport ein */
         .game-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Removed padding, border-radius, box-shadow to make it fill the screen */
             position: relative;
-            overflow: hidden; /* Important for Game Over animation */
-            width: 100vw; /* Takes full viewport width */
-            height: 100vh; /* Takes full viewport height */
-            justify-content: space-between; /* Distributes space between Canvas and Buttons */
-            max-width: none; /* Removed max-width */
-            max-height: none; /* Removed max-height */
+            overflow: hidden; /* Wichtig für Animationen wie Game Over */
+            width: 100vw; /* Volle Viewport-Breite */
+            height: 100vh; /* Volle Viewport-Höhe */
+            justify-content: space-between; /* Verteilt den Platz zwischen Canvas und Buttons */
+            max-width: none; /* Keine maximale Breite */
+            max-height: none; /* Keine maximale Höhe */
         }
+        /* Stil für den Canvas-Bereich */
         canvas {
-            background-color: #0f0f1a; /* Even darker background for game area */
+            background-color: #0f0f1a; /* Noch dunklerer Hintergrund für den Spielbereich */
             display: block;
-            border-radius: 0; /* No rounded corners for full screen */
-            touch-action: none; /* Prevents default touch actions like scrolling */
-            width: 100%; /* Fills the width of the parent container */
-            height: 100%; /* Fills the height of the parent container */
-            flex-grow: 1; /* Allows the Canvas to take available space */
+            border-radius: 0; /* Keine abgerundeten Ecken für Vollbild */
+            touch-action: none; /* Verhindert Standard-Touch-Aktionen wie Scrollen */
+            width: 100%; /* Füllt die Breite des Elterncontainers */
+            height: 100%; /* Füllt die Höhe des Elterncontainers */
+            flex-grow: 1; /* Ermöglicht dem Canvas, den verfügbaren Platz einzunehmen */
         }
+        /* Container für die Buttons unter dem Spielbereich */
         .button-container {
             display: flex;
-            gap: 15px; /* Less space between buttons */
-            margin-top: 15px; /* Less space to Canvas */
+            gap: 15px; /* Weniger Abstand zwischen den Buttons */
+            margin-top: 15px; /* Weniger Abstand zum Canvas */
         }
+        /* Allgemeine Stildefinitionen für Spiel-Buttons */
         .game-button {
-            background: linear-gradient(145deg, #00c6ff, #0072ff); /* More vibrant blue gradient */
+            background: linear-gradient(145deg, #00c6ff, #0072ff); /* Lebhafterer blauer Verlauf */
             color: white;
-            padding: 12px 20px; /* Smaller buttons */
+            padding: 12px 20px; /* Kleinere Buttons */
             border: none;
-            border-radius: 12px; /* Slightly less rounded */
+            border-radius: 12px; /* Leicht weniger abgerundet */
             cursor: pointer;
-            font-size: 1em; /* Smaller font */
+            font-size: 1em; /* Kleinere Schriftgröße */
             font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 198, 255, 0.6); /* Stronger, glowing shadow */
+            transition: all 0.2s ease; /* Schnellere Übergänge */
+            box-shadow: none; /* Schatten komplett entfernt für maximale Performance */
             position: relative;
             overflow: hidden;
-            letter-spacing: 0.5px; /* Slight letter spacing */
+            letter-spacing: 0.5px; /* Leichter Zeichenabstand */
         }
+        /* Hover-Effekte für Buttons */
         .game-button:hover {
             background: linear-gradient(145deg, #0072ff, #00c6ff);
-            transform: translateY(-3px) scale(1.01); /* More pronounced hover effect */
-            box-shadow: 0 6px 20px rgba(0, 198, 255, 0.8);
+            transform: translateY(-1px) scale(1.005); /* Minimaler Hover-Effekt */
+            box-shadow: none; /* Schatten komplett entfernt */
         }
+        /* Aktiver (geklickter) Zustand für Buttons */
         .game-button:active {
-            transform: translateY(0) scale(0.99);
-            box-shadow: 0 2px 8px rgba(0, 198, 255, 0.4);
+            transform: translateY(0) scale(0.995);
+            box-shadow: none; /* Schatten komplett entfernt */
         }
+        /* Pseudo-Element für den Glanz-Effekt auf Buttons */
         .game-button::before {
             content: '';
             position: absolute;
@@ -80,210 +92,220 @@
             left: 50%;
             width: 300%;
             height: 300%;
-            background: rgba(255, 255, 255, 0.2); /* Brighter sheen */
+            background: rgba(255, 255, 255, 0.05); /* Noch weniger opak */
             border-radius: 50%;
-            transition: all 0.6s ease;
+            transition: all 0.4s ease; /* Schnellere Transition */
             z-index: 0;
             transform: translate(-50%, -50%) scale(0);
         }
+        /* Hover-Effekt für den Glanz */
         .game-button:hover::before {
             transform: translate(-50%, -50%) scale(1);
             opacity: 0;
         }
-        /* Removed message-box styles as it's no longer used */
 
-        /* Game UI elements */
+        /* UI-Elemente während des Spiels */
         .game-ui {
             position: absolute;
-            top: 10px; /* Less distance from edge for full screen */
+            top: 10px;
             left: 10px;
             color: white;
-            font-size: 1em; /* Smaller font */
+            font-size: 1em;
             font-weight: bold;
             display: flex;
             flex-direction: column;
-            gap: 5px; /* Less space between elements */
+            gap: 5px;
             z-index: 50;
-            background-color: rgba(15, 15, 26, 0.7); /* Semi-transparent background */
-            padding: 8px 12px; /* Smaller padding for full screen */
+            background-color: rgba(15, 15, 26, 0.7); /* Halbtransparenter Hintergrund */
+            padding: 8px 12px;
             border-radius: 8px;
-            box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+            box-shadow: none; /* Schatten komplett entfernt */
         }
 
-        /* Start Screen Styles */
+        /* Start- und Game-Over-Bildschirm Stile */
         .start-screen, .game-over-screen {
-            position: fixed; /* Changed to fixed to cover entire viewport */
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100vw; /* Changed to 100vw */
-            height: 100vh; /* Changed to 100vh */
-            background-color: rgba(0, 0, 0, 0.95); /* Even more opaque */
-            backdrop-filter: blur(8px); /* Frosted glass effect */
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.95); /* KEIN backdrop-filter */
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Align content to the top */
+            justify-content: flex-start;
             align-items: center;
             color: white;
             font-size: 1.2em;
             text-align: center;
             z-index: 100;
-            padding: 10px; /* Further reduced for mobile */
-            box-sizing: border-box; /* Include padding in size */
-            opacity: 1; /* For transitions */
-            transition: opacity 0.5s ease-in-out; /* Transition for fade in/out */
+            padding: 10px;
+            box-sizing: border-box;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out; /* Schnellere Übergang */
         }
+        /* Wenn der Bildschirm versteckt ist */
         .start-screen.hidden, .game-over-screen.hidden {
             opacity: 0;
-            pointer-events: none; /* Prevents interaction when hidden */
+            pointer-events: none;
         }
 
+        /* Überschrift auf dem Startbildschirm */
         .start-screen h2 {
             font-size: 1.8em;
             margin-bottom: 8px;
             color: #00eaff;
-            text-shadow: 0 0 8px rgba(0, 255, 255, 0.9);
+            text-shadow: none; /* Schatten komplett entfernt */
             letter-spacing: 1px;
-            flex-shrink: 0; /* Prevents title from shrinking */
-            margin-top: 20px; /* Some top margin */
+            flex-shrink: 0;
+            margin-top: 20px;
         }
-        .start-screen p { /* These rules are removed as texts are removed */
-            display: none;
-        }
+        /* Shop-Bereich auf dem Startbildschirm */
         .shop-section {
-            margin-top: 15px; /* Less space to title */
+            margin-top: 15px;
             width: 95%;
             max-width: 400px;
             background-color: rgba(15, 15, 26, 0.95);
             border-radius: 12px;
             padding: 10px;
-            box-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            flex-grow: 0; /* Changed so it doesn't take all space */
-            overflow-y: auto; /* Important: Makes the shop scrollable if too large */
-            -webkit-overflow-scrolling: touch; /* Improves scrolling on iOS */
-            margin-bottom: 10px; /* Space to button */
-            max-height: 60vh; /* Limits shop height to 60% of viewport height */
+            box-shadow: none; /* Schatten komplett entfernt */
+            border: 1px solid rgba(0, 255, 255, 0.05); /* Noch weniger prominenter Rand */
+            flex-grow: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 10px;
+            max-height: 60vh;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Align content to top */
+            justify-content: flex-start;
         }
 
-        /* Scrollbar Styling for Webkit browsers (Chrome, Safari, iOS) */
+        /* Scrollbar-Styling für Webkit-Browser (Chrome, Safari, iOS) */
         .shop-section::-webkit-scrollbar {
-            width: 8px; /* Scrollbar width */
-            background-color: transparent; /* Makes background transparent */
+            width: 4px; /* Noch schmalere Scrollbar */
+            background-color: transparent;
         }
 
         .shop-section::-webkit-scrollbar-track {
-            background: rgba(0, 198, 255, 0.05); /* Light, transparent track */
+            background: rgba(0, 198, 255, 0.01); /* Minimaler Hintergrund */
             border-radius: 10px;
         }
 
         .shop-section::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #00c6ff, #0072ff); /* Neon gradient for thumb */
-            border-radius: 10px; /* Rounded thumb corners */
-            border: 1px solid rgba(0, 255, 255, 0.3); /* Light border */
+            background: #00c6ff; /* Feste Farbe, einfacher */
+            border-radius: 10px;
+            border: none; /* Kein Rand */
         }
 
         .shop-section::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, #0072ff, #00c6ff); /* Reverse gradient on hover */
+            background: #0072ff; /* Feste Farbe beim Hover */
         }
 
         .shop-section::-webkit-scrollbar-thumb:active {
-            background: #00eaff; /* Solid color on click */
+            background: #00eaff;
         }
 
-
+        /* Überschrift im Shop-Bereich */
         .shop-section h3 {
             margin-top: 5px;
             margin-bottom: 10px;
             font-size: 1.2em;
             color: #7affd4;
-            text-shadow: 0 0 5px rgba(122, 255, 212, 0.7);
+            text-shadow: none; /* Schatten komplett entfernt */
         }
-        .total-points-display { /* New class for total points */
-            font-size: 1.1em; /* Slightly larger */
+        /* Anzeige der Gesamtpunkte */
+        .total-points-display {
+            font-size: 1.1em;
             font-weight: bold;
-            color: #00eaff; /* Neon color */
-            text-shadow: 0 0 8px rgba(0, 255, 255, 0.9);
-            margin-top: 8px; /* Space to heading */
-            margin-bottom: 15px; /* Space to upgrades */
+            color: #00eaff;
+            text-shadow: none; /* Schatten komplett entfernt */
+            margin-top: 8px;
+            margin-bottom: 15px;
             padding: 5px 10px;
             border-radius: 8px;
-            background-color: rgba(0, 198, 255, 0.1); /* Light background */
+            background-color: rgba(0, 198, 255, 0.05); /* Heller Hintergrund */
         }
+        /* Einzelnes Shop-Item */
         .shop-item {
             display: flex;
-            flex-direction: column; /* Stack items vertically on mobile */
-            align-items: flex-start; /* Align text to start */
-            padding: 8px 0; /* More padding */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Less prominent separator line */
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* Noch weniger prominente Trennlinie */
         }
         .shop-item:last-child {
             border-bottom: none;
         }
+        /* Informationen zum Shop-Item */
         .shop-item-info {
             text-align: left;
-            font-size: 0.8em; /* Slightly larger */
+            font-size: 0.8em;
             line-height: 1.2;
-            margin-bottom: 4px; /* More space */
+            margin-bottom: 4px;
         }
         .shop-item-info strong {
             color: #7affd4;
-            font-size: 0.9em; /* Slightly larger */
-            text-shadow: 0 0 2px rgba(122, 255, 212, 0.5);
+            font-size: 0.9em;
+            text-shadow: none; /* Schatten komplett entfernt */
         }
+        /* Button zum Kaufen eines Shop-Items */
         .shop-item-button {
             background: linear-gradient(145deg, #32cd32, #228b22);
             color: white;
-            padding: 8px 15px; /* Larger button */
+            padding: 8px 15px;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             font-weight: bold;
-            box-shadow: 0 3px 8px rgba(50, 205, 50, 0.4);
+            box-shadow: none; /* Schatten komplett entfernt */
             letter-spacing: 0.5px;
-            width: 100%; /* Full width button on mobile */
-            font-size: 0.8em; /* Slightly larger */
-            margin-top: 5px; /* Space to text */
+            width: 100%;
+            font-size: 0.8em;
+            margin-top: 5px;
         }
+        /* Hover-Effekte für Shop-Buttons */
         .shop-item-button:hover:not(:disabled) {
             background: linear-gradient(145deg, #228b22, #32cd32);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(50, 205, 50, 0.6);
+            transform: translateY(-0.5px); /* Minimaler Hover */
+            box-shadow: none; /* Schatten komplett entfernt */
         }
+        /* Aktiver Zustand für Shop-Buttons */
         .shop-item-button:active {
-            transform: translateY(0) scale(0.99);
-            box-shadow: 0 2px 6px rgba(50, 205, 50, 0.4);
+            transform: translateY(0) scale(0.998);
+            box-shadow: none; /* Schatten komplett entfernt */
         }
+        /* Deaktivierter Zustand für Shop-Buttons */
         .shop-item-button:disabled {
             background-color: #4a4a5a;
             cursor: not-allowed;
-            opacity: 0.6;
+            opacity: 0.4; /* Noch weniger opak */
             box-shadow: none;
         }
-        .start-play-button { /* New class for start button */
-            margin-top: 20px; /* More space to shop area */
-            margin-bottom: 10px; /* Space to bottom edge */
-            flex-shrink: 0; /* Prevents title from shrinking */
-            padding: 18px 35px; /* Even larger button */
-            font-size: 1.4em; /* Larger font */
-            border-radius: 15px; /* Slightly more rounded */
+        /* Start-Spiel-Button auf dem Startbildschirm */
+        .start-play-button {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+            padding: 18px 35px;
+            font-size: 1.4em;
+            border-radius: 15px;
         }
+        /* Game Over Nachricht */
         .game-over-message {
             font-size: 2.2em;
             color: #ff6347;
-            text-shadow: 0 0 12px rgba(255, 99, 71, 0.9);
+            text-shadow: none; /* Schatten komplett entfernt */
             letter-spacing: 1px;
-            margin-bottom: 20px; /* Increased margin for spacing */
-            margin-top: 10vh; /* Push down from top for better centering */
+            margin-bottom: 20px;
+            margin-top: 10vh;
         }
 
+        /* Game Over Bildschirm */
         .game-over-screen {
-            justify-content: flex-start; /* Align content to the top */
-            padding-top: 0; /* Remove padding top as margin-top on message handles it */
+            justify-content: flex-start;
+            padding-top: 0;
         }
 
+        /* Buttons auf dem Game Over Bildschirm */
         .game-over-buttons {
             display: flex;
             gap: 20px;
@@ -294,25 +316,23 @@
             font-size: 1.1em;
         }
 
-        /* Game Over Screen specific styling */
+        /* Spezifisches Styling für den Game Over Bildschirm */
         .game-over-screen p {
-            font-size: 1.2em; /* Slightly larger font for readability */
-            margin-bottom: 10px; /* Space between lines */
-            color: #7affd4; /* Neon green color */
-            text-shadow: 0 0 5px rgba(122, 255, 212, 0.7); /* Subtle glow */
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #7affd4;
+            text-shadow: none; /* Schatten komplett entfernt */
         }
         .game-over-screen p span {
-            color: #00eaff; /* Brighter neon blue for scores */
-            text-shadow: 0 0 8px rgba(0, 255, 255, 0.9); /* Stronger glow for scores */
+            color: #00eaff;
+            text-shadow: none; /* Schatten komplett entfernt */
             font-weight: bold;
         }
 
 
-        /* Media Queries for larger screens to revert some changes */
+        /* Media Queries für größere Bildschirme, um einige Änderungen rückgängig zu machen */
         @media (min-width: 768px) {
             .game-container {
-                /* On larger screens, revert to a contained look if preferred, or keep full screen */
-                /* For now, keeping full screen for consistency with mobile request */
                 padding: 0;
                 width: 100vw;
                 height: 100vh;
@@ -325,7 +345,6 @@
                 padding: 15px 30px;
                 font-size: 1.2em;
             }
-            /* Removed message-box media queries */
             .game-ui {
                 top: 20px;
                 left: 20px;
@@ -345,14 +364,14 @@
                 margin-top: 40px;
                 max-width: 600px;
                 padding: 30px;
-                max-height: 70vh; /* Slightly more space on larger screens */
+                max-height: 70vh;
             }
             .total-points-display {
                 font-size: 1.5em;
                 margin-bottom: 25px;
             }
             .shop-item {
-                flex-direction: row; /* Back to row layout on larger screens */
+                flex-direction: row;
                 align-items: center;
                 padding: 15px 0;
             }
@@ -362,11 +381,11 @@
             }
             .shop-item-button {
                 padding: 12px 25px;
-                width: auto; /* Auto width button on larger screens */
+                width: auto;
                 font-size: 1.1em;
             }
             .start-play-button {
-                margin-top: 30px; /* More space on large screens */
+                margin-top: 30px;
                 padding: 20px 40px;
                 font-size: 1.6em;
             }
@@ -379,7 +398,7 @@
 </head>
 <body>
     <div class="game-container">
-        <!-- Audio elements for sounds -->
+        <!-- Audio-Elemente für Sounds. `preload="auto"` hilft beim schnelleren Laden. -->
         <audio id="bowDrawSound" preload="auto" onerror="console.error('Error loading bowdraw.mp3');"></audio>
         <audio id="arrowShootSound" preload="auto" onerror="console.error('Error loading bowrelease.mp3');"></audio>
         <audio id="obstacleHitSound" preload="auto" onerror="console.error('Error loading arrowhit.mp3');"></audio>
@@ -387,72 +406,67 @@
         <audio id="backgroundMusic" loop preload="auto" onerror="console.error('Error loading gamemusic.mp3');"></audio>
         <audio id="upgradeSound" preload="auto" onerror="console.error('Error loading upgrade.mp3');"></audio>
 
-
         <canvas id="gameCanvas"></canvas>
-        <div class="button-container" style="display: none;"> <!-- Buttons initially hidden -->
+        <div class="button-container" style="display: none;"> <!-- Buttons initial ausgeblendet -->
             <button id="startButton" class="game-button">Start</button>
             <button id="resetButton" class="game-button">Reset</button>
         </div>
 
-        <!-- Game UI -->
+        <!-- Game UI (Punkte, Pfeile, Highscore) -->
         <div class="game-ui">
-            <div id="arrowCountDisplay">Arrows: 50</div> <!-- Changed text to English -->
-            <div id="pointsDisplay">Points: 0</div> <!-- Changed text to English -->
-            <div id="highScoreDisplay">HIGHSCORE: 0</div> 
+            <div id="arrowCountDisplay">Arrows: 50</div>
+            <div id="pointsDisplay">Points: 0</div>
+            <div id="highScoreDisplay">HIGHSCORE: 0</div>
         </div>
 
-        <!-- Start Screen -->
+        <!-- Startbildschirm mit Shop -->
         <div id="startScreen" class="start-screen">
             <h2>Neon Archer</h2>
-            
             <div class="shop-section">
                 <h3>Upgrades</h3>
                 <div class="total-points-display">
-                    YOUR NEON POINTS: <span id="startScreenPoints">0</span> <!-- Changed text to English -->
+                    YOUR NEON POINTS: <span id="startScreenPoints">0</span>
                 </div>
                 <div class="shop-item">
                     <div class="shop-item-info" id="arrowsUpgradeInfoContainer">
-                        <strong>Expand Arrow Supply (Level <span id="arrowsUpgradeLevelDisplay">0</span>)</strong><br> <!-- Changed text to English -->
-                        <span>Increases your starting arrow count by 5 per level.</span> <!-- Changed text to English -->
+                        <strong>Expand Arrow Supply (Level <span id="arrowsUpgradeLevelDisplay">0</span>)</strong><br>
+                        <span>Increases your starting arrow count by 5 per level.</span>
                     </div>
-                    <button class="shop-item-button" id="buyArrowsUpgrade">Buy (<span id="arrowsUpgradeCost">25P</span>)</button> <!-- Changed text to English -->
+                    <button class="shop-item-button" id="buyArrowsUpgrade">Buy (<span id="arrowsUpgradeCost">25P</span>)</button>
                 </div>
                 <div class="shop-item">
                     <div class="shop-item-info" id="speedUpgradeInfoContainer">
-                        <strong>Obstacle Slowdown (Level <span id="speedUpgradeLevelDisplay">0</span>)</strong><br> <!-- Changed text to English -->
-                        <span>Decreases obstacle speed by 1% per level.</span> <!-- Changed text to English -->
+                        <strong>Obstacle Slowdown (Level <span id="speedUpgradeLevelDisplay">0</span>)</strong><br>
+                        <span>Decreases obstacle speed by 1% per level.</span>
                     </div>
-                    <button class="shop-item-button" id="buySpeedUpgrade">Buy (<span id="speedUpgradeCost">25P</span>)</button> <!-- Changed text to English -->
+                    <button class="shop-item-button" id="buySpeedUpgrade">Buy (<span id="speedUpgradeCost">25P</span>)</button>
                 </div>
                 <div class="shop-item">
                     <div class="shop-item-info" id="indicatorUpgradeInfoContainer">
-                        <strong>Extend Aim Assist (Level <span id="indicatorUpgradeLevelDisplay">0</span>)</strong><br> <!-- Changed text to English -->
-                        <span>Extends your shot indicator range by 1% per level.</span> <!-- Changed text to English -->
+                        <strong>Extend Aim Assist (Level <span id="indicatorUpgradeLevelDisplay">0</span>)</strong><br>
+                        <span>Extends your shot indicator range by 1% per level.</span>
                     </div>
-                    <button class="shop-item-button" id="buyIndicatorUpgrade">Buy (<span id="indicatorUpgradeCost">25P</span>)</button> <!-- Changed text to English -->
+                    <button class="shop-item-button" id="buyIndicatorUpgrade">Buy (<span id="indicatorUpgradeCost">25P</span>)</button>
                 </div>
             </div>
-
-            <button id="startPlayButton" class="game-button start-play-button">Start Game</button> <!-- Changed text to English -->
+            <button id="startPlayButton" class="game-button start-play-button">Start Game</button>
         </div>
 
-        <!-- Game Over Screen -->
-        <div id="gameOverScreen" class="game-over-screen hidden"> <!-- Initially hidden with 'hidden' class -->
-            <h2 class="game-over-message">GAME OVER!</h2> <!-- Changed text to English -->
-            <p>Points: <span id="roundPointsDisplay">0</span></p> <!-- Changed text to English -->
-            <p>Highscore: <span id="highestScoreDisplay">0</span></p> <!-- Changed text to English -->
-            <p>Total Points: <span id="totalPointsGameOverDisplay">0</span></p> <!-- Changed text to English -->
+        <!-- Game Over Bildschirm -->
+        <div id="gameOverScreen" class="game-over-screen hidden">
+            <h2 class="game-over-message">GAME OVER!</h2>
+            <p>Points: <span id="roundPointsDisplay">0</span></p>
+            <p>Highscore: <span id="highestScoreDisplay">0</span></p>
+            <p>Total Points: <span id="totalPointsGameOverDisplay">0</span></p>
             <div class="game-over-buttons">
-                <button id="restartGameButton" class="game-button">RESTART</button> <!-- Changed text to English -->
-                <button id="menuButton" class="game-button">MENU</button> <!-- Changed text to English -->
+                <button id="restartGameButton" class="game-button">RESTART</button>
+                <button id="menuButton" class="game-button">MENU</button>
             </div>
         </div>
     </div>
 
-    <!-- Removed messageBox div as it's no longer used -->
-
     <script>
-        // Game States
+        // Spielzustände zur Steuerung des Spielflusses
         const GAME_STATES = {
             START_SCREEN: 'start_screen',
             GAME_PLAYING: 'game_playing',
@@ -460,9 +474,9 @@
         };
         let currentGameState = GAME_STATES.START_SCREEN;
 
-        // Declare UI elements as 'let' in global scope
-        // Assignment happens within the window.onload listener
-        let canvas, ctx, startButton, resetButton, 
+        // Deklaration von UI-Elementen und Audio-Objekten im globalen Bereich
+        // Die Zuweisung erfolgt innerhalb des window.onload-Listeners
+        let canvas, ctx,
             arrowCountDisplay, pointsDisplay, highScoreDisplay, startScreen, startScreenPoints, startPlayButton,
             gameOverScreen, roundPointsDisplay, highestScoreDisplay, totalPointsGameOverDisplay,
             buyArrowsUpgradeButton, arrowsUpgradeInfo, arrowsUpgradeCostDisplay, arrowsUpgradeLevelDisplay,
@@ -471,124 +485,132 @@
             restartGameButton, menuButton,
             bowDrawAudio, arrowShootAudio, obstacleHitAudio, targetHitAudio, backgroundMusic, upgradeSound;
 
-        // Game variables
-        let animationFrameId;
-        let arrowSpawnCooldown = false; 
-        let cooldownTimeoutId = null; 
-        let isBowstringSnappingBack = false; // Flag for bowstring animation
-        let initialChargePowerAtRelease = 0; // Stores charge at release
-        let initialAimAngleAtRelease = 0; // Stores aim angle at release for snapback
-        let snapbackAnimationStartTime = 0; // Start time of bowstring animation
-        const snapbackAnimationDuration = 250; // Duration of snapback animation in ms (slower)
-        let gameEndTimeoutId = null; // For Game Over Screen timer
+        // Spielvariablen
+        let animationFrameId; // Speichert die ID des requestAnimationFrame-Aufrufs
+        let arrowSpawnCooldown = false; // Flag, um das Spawnen von Pfeilen zu verzögern
+        let cooldownTimeoutId = null; // Speichert die ID des Cooldown-Timeouts
+        let isBowstringSnappingBack = false; // Flag für die Animation der Bogensehne
+        let initialChargePowerAtRelease = 0; // Speichert die Ladeleistung beim Abschuss
+        let initialAimAngleAtRelease = 0; // Speichert den Zielwinkel beim Abschuss für den Rückschnell-Effekt
+        let snapbackAnimationStartTime = 0; // Startzeit der Bogensehnen-Animation
+        const snapbackAnimationDuration = 150; // Dauer der Rückschnell-Animation in ms (noch weiter reduziert)
+        let gameEndTimeoutId = null; // Für den Game Over Bildschirm-Timer
 
-        // New variables for smooth aiming
-        let displayBowAngle = 0; // The angle the bow is visually drawn at
+        // Variablen für sanftes Zielen
+        let displayBowAngle = 0; // Der Winkel, in dem der Bogen visuell gezeichnet wird
         let aimAnimationStartTime = 0;
         let startDisplayBowAngle = 0;
         let targetDisplayBowAngle = 0;
-        const aimAnimationDuration = 150; // Duration for aiming animation in ms
+        const aimAnimationDuration = 75; // Dauer der Ziel-Animation in ms (noch weiter reduziert)
 
-        // New variables for game area hit effect
+        // Variablen für den Treffer-Effekt des Spielbereichs
         let gameAreaHitEffectOpacity = 0;
         let gameAreaHitEffectTime = 0;
-        const GAME_AREA_HIT_EFFECT_DURATION_MS = 1000; // Increased duration for game area glow
+        const GAME_AREA_HIT_EFFECT_DURATION_MS = 300; // Stark reduzierte Dauer für den Leuchteffekt des Spielbereichs (kurzer Blitz)
 
+        // Lautstärkeeinstellungen für alle Sounds
+        const DEFAULT_SOUND_VOLUME = 0.5;
 
-        // --- Volume Settings ---
-        const DEFAULT_SOUND_VOLUME = 0.5; 
-        // --- End Volume Settings ---
-
-        // Helper functions for playing sounds
+        /**
+         * Spielt ein Audio-Element ab.
+         * Setzt die Wiedergabezeit auf 0, um den Sound bei jedem Aufruf von vorne zu starten.
+         * @param {HTMLAudioElement} audioElement - Das abzuspielende Audio-Element.
+         */
         const playSound = (audioElement) => {
             if (audioElement) {
-                audioElement.currentTime = 0; // Reset to start
-                audioElement.play().catch(e => console.error("Error playing sound:", e));
+                audioElement.currentTime = 0; // Zurücksetzen auf den Anfang
+                audioElement.play().catch(e => console.error("Error playing sound:", e)); // Fehlerbehandlung für die Wiedergabe
             }
         };
 
+        /**
+         * Spielt die Hintergrundmusik ab.
+         */
         const playBackgroundMusic = () => {
             if (backgroundMusic) {
-                backgroundMusic.loop = true;
+                backgroundMusic.loop = true; // Musik loopen
                 backgroundMusic.volume = DEFAULT_SOUND_VOLUME;
                 console.log("Background music playing.");
                 backgroundMusic.play().catch(e => console.error("Error playing background music:", e));
             }
         };
 
+        /**
+         * Stoppt die Hintergrundmusik.
+         */
         const stopBackgroundMusic = () => {
             if (backgroundMusic) {
                 backgroundMusic.pause();
-                backgroundMusic.currentTime = 0;
+                backgroundMusic.currentTime = 0; // Zurücksetzen auf den Anfang
                 console.log("Background music stopped.");
             }
         };
 
-        // Game settings / constants
-        const BASE_SCREEN_DIMENSION_FOR_SCALING = 600; // An arbitrary base to scale everything
+        // Spiel-Einstellungen / Konstanten
+        const BASE_SCREEN_DIMENSION_FOR_SCALING = 600; // Eine willkürliche Basis zur Skalierung aller Elemente
 
         const GAME_CONSTANTS = {
-            BOW_RADIUS: 25, 
-            ARROW_WIDTH: 40, 
-            ARROW_HEIGHT: 4, 
-            TARGET_RADIUS: 45, 
-            
-            OBSTACLE_LINE_WIDTH: 12, 
-            BASE_OBSTACLE_SEGMENT_HEIGHT: 100, 
-            BASE_OBSTACLE_GAP_HEIGHT: 95, 
-            
-            MAX_AIM_ANGLE: Math.PI / 3.5, 
-            NUM_OBSTACLE_COLUMNS: 5,
-            OBSTACLE_MIN_BASE_SPEED: 2.5, 
-            OBSTACLE_MAX_BASE_SPEED: 4.5, 
-            NUM_PARTICLES: 50, 
-            PARTICLE_LAYERS: 2, 
+            BOW_RADIUS: 25,
+            ARROW_WIDTH: 40,
+            ARROW_HEIGHT: 4,
+            TARGET_RADIUS: 45,
+
+            OBSTACLE_LINE_WIDTH: 12,
+            BASE_OBSTACLE_SEGMENT_HEIGHT: 100,
+            BASE_OBSTACLE_GAP_HEIGHT: 95,
+
+            MAX_AIM_ANGLE: Math.PI / 3.5,
+            NUM_OBSTACLE_COLUMNS: 4, // Anzahl der Hindernissäulen (REDUZIERT)
+            OBSTACLE_MIN_BASE_SPEED: 2.5,
+            OBSTACLE_MAX_BASE_SPEED: 4.5,
+            NUM_PARTICLES: 15, // Anzahl der Hintergrundpartikel (DRastisch REDUZIERT)
+            PARTICLE_LAYERS: 1, // Anzahl der Partikelschichten (REDUZIERT)
             BASE_ARROW_COST: 25,
             BASE_SPEED_COST: 25,
             BASE_INDICATOR_COST: 25,
-            MIN_ARROW_SPEED: 8, 
-            MAX_ARROW_SPEED: 23, 
+            MIN_ARROW_SPEED: 8,
+            MAX_ARROW_SPEED: 23,
             MAX_CHARGE: 100,
-            CHARGE_RATE: 3.0, 
+            CHARGE_RATE: 3.0,
             INITIAL_ARROWS: 25,
             ARROWS_PER_UPGRADE: 5,
-            SPEED_REDUCTION_PER_UPGRADE: 0.05,
+            SPEED_REDUCTION_PER_UPGRADE: 0.05, // 5% Reduktion pro Level
             INDICATOR_LENGTH_INITIAL_PERCENTAGE: 15,
             INDICATOR_LENGTH_PER_UPGRADE: 2.5,
-            ARROW_DESPAWN_TIME_MS: 8000,
-            STUCK_ARROW_DURATION_MS: 5000,
-            HIT_ANIMATION_DURATION_MS: 150, // Increased duration for obstacle glow
-            TARGET_HIT_EFFECT_DECAY: 0.08,
-            TARGET_HIT_EFFECT_GROWTH: 2,
+            ARROW_DESPAWN_TIME_MS: 8000, // Zeit bis ein Pfeil despawnt, wenn er nichts trifft
+            STUCK_ARROW_DURATION_MS: 5000, // Zeit, die ein Pfeil im Hindernis steckt
+            HIT_ANIMATION_DURATION_MS: 50, // Dauer der Hindernis-Glüh-Animation (EXTREM REDUZIERT, fast nur ein Blitz)
+            TARGET_HIT_EFFECT_DECAY: 0.2, // Schnelleres Verblassen
+            TARGET_HIT_EFFECT_GROWTH: 5, // Schnelleres Wachstum
             POINT_PER_STREAK_MULTIPLIER: 5,
-            OBSTACLE_SPEED_INCREASE_PER_TARGET: 0.0025,
-            ARROW_TIP_COLLISION_RADIUS: 6, // Made narrower
-            MAX_PULLBACK_DISTANCE: 30, // Slightly less pullback
-            ARROW_SPAWN_DELAY_MS: 200, 
-            NEW_TARGET_SPAWN_DELAY_MS: 300,
-            LAST_ARROW_MISS_GAMEOVER_DELAY_MS: 4000 // 4 seconds delay for game over on last arrow miss
+            OBSTACLE_SPEED_INCREASE_PER_TARGET: 0.0025, // Erhöht die Hindernisgeschwindigkeit pro Zieltreffer
+            ARROW_TIP_COLLISION_RADIUS: 6, // Kollisionsradius der Pfeilspitze (schmaler gemacht)
+            MAX_PULLBACK_DISTANCE: 30, // Maximaler Rückzugsabstand des Bogens
+            ARROW_SPAWN_DELAY_MS: 200, // Verzögerung bis ein neuer Pfeil geladen wird
+            NEW_TARGET_SPAWN_DELAY_MS: 300, // Verzögerung bis ein neues Ziel erscheint
+            LAST_ARROW_MISS_GAMEOVER_DELAY_MS: 4000 // 4 Sekunden Verzögerung für Game Over bei letztem Pfeil-Fehlschuss
         };
 
-        // Object pools
+        // Objekt-Pools zur Wiederverwendung von Objekten und Reduzierung der Garbage Collection
         const arrowPool = [];
         const targetParticlePool = [];
         const scorePopupPool = [];
 
-        // Game state
-        let totalPoints = 0; // Total points for upgrades (persisted)
-        let currentArrows = 0;
-        let streak = 0; // Current streak in the round
-        let roundPoints = 0; // Points in the current round
-        let targetsHitInRound = 0;
-        let highScore = 0; // Highest round points achieved (persisted)
-        let lastArrowFired = false; // New flag to track if the last arrow has been fired
+        // Spielstatus-Variablen
+        let totalPoints = 0; // Gesamtpunkte für Upgrades (dauerhaft gespeichert)
+        let currentArrows = 0; // Aktuelle Anzahl der Pfeile
+        let streak = 0; // Aktuelle Serie in der Runde
+        let roundPoints = 0; // Punkte in der aktuellen Runde
+        let targetsHitInRound = 0; // Anzahl der in der Runde getroffenen Ziele
+        let highScore = 0; // Höchste erreichte Punktzahl (dauerhaft gespeichert)
+        let lastArrowFired = false; // Flag, um zu verfolgen, ob der letzte Pfeil abgefeuert wurde
 
-        // Upgrade levels and costs (persisted)
+        // Upgrade-Level und Kosten (dauerhaft gespeichert)
         let arrowsUpgradeLevel = 0;
         let speedUpgradeLevel = 0;
         let indicatorUpgradeLevel = 0;
 
-        // Bow variables
+        // Bogen-Variablen
         const bow = {
             x: 0,
             y: 0,
@@ -596,42 +618,46 @@
             color: '#ADD8E6'
         };
 
-        // Arrow variables (activeArrows replaces previous 'arrows' variable)
-        let activeArrows = [];
-        let currentChargingArrow = {
-            x: 0, y: 0, width: GAME_CONSTANTS.ARROW_WIDTH, height: GAME_CONSTANTS.ARROW_HEIGHT, speed: 0, speedX: 0, speedY: 0, 
+        // Pfeil-Variablen (activeArrows ersetzt die frühere 'arrows'-Variable)
+        let activeArrows = []; // Array für aktive, fliegende Pfeile
+        let currentChargingArrow = { // Der aktuell geladene Pfeil
+            x: 0, y: 0, width: GAME_CONSTANTS.ARROW_WIDTH, height: GAME_CONSTANTS.ARROW_HEIGHT, speed: 0, speedX: 0, speedY: 0,
             color: '#ADD8E6', stuck: false, stuckObstacle: null, chargeOffset: 0, aimAngle: 0,
-            stuckX: 0, stuckY: 0, stuckAngle: 0, spawnTime: 0, stuckObstacleInitialY: 0, active: true 
+            stuckX: 0, stuckY: 0, stuckAngle: 0, spawnTime: 0, stuckObstacleInitialY: 0, active: true
         };
 
-        // Target variables
+        // Ziel-Variablen
         let target = {
             x: 0, y: 0, radius: GAME_CONSTANTS.TARGET_RADIUS, color: '#00BFFF',
-            spawnAnimationProgress: 0, // 0 to 1 for fade-in animation on spawn
-            hitWaveRadius: 0, // For the expanding wave on hit
-            hitWaveOpacity: 0 // For the fading opacity of the wave on hit
+            spawnAnimationProgress: 0, // 0 bis 1 für die Einblend-Animation beim Spawnen
+            hitWaveRadius: 0, // Für die sich ausbreitende Welle beim Treffer
+            hitWaveOpacity: 0 // Für die verblassende Deckkraft der Welle beim Treffer
         };
 
-        // Charging variables
-        let isCharging = false;
-        let chargePower = 0;
+        // Lade-Variablen (für den Bogenspann-Mechanismus)
+        let isCharging = false; // Ist der Bogen gespannt?
+        let chargePower = 0; // Aktuelle Ladeleistung
         const maxCharge = GAME_CONSTANTS.MAX_CHARGE;
         const chargeRate = GAME_CONSTANTS.CHARGE_RATE;
         const minArrowSpeed = GAME_CONSTANTS.MIN_ARROW_SPEED;
         const maxArrowSpeed = GAME_CONSTANTS.MAX_ARROW_SPEED;
         const maxAimAngle = GAME_CONSTANTS.MAX_AIM_ANGLE;
 
-        // Obstacle configuration
-        let obstacleColumns = [];
+        // Hindernis-Konfiguration
+        let obstacleColumns = []; // Array von Spalten, die Hindernisse enthalten
 
-        // Background particles
+        // Hintergrundpartikel
         const particles = [];
-        // Particles for target hit
+        // Partikel für Zieltreffer
         let activeTargetHitParticles = [];
-        // Score popups
+        // Score-Popups
         let activeScorePopups = [];
 
-        // --- Helper functions for object pooling ---
+        // --- Hilfsfunktionen für Objekt-Pooling ---
+        /**
+         * Holt einen Pfeil aus dem Pool oder erstellt einen neuen, wenn der Pool leer ist.
+         * @returns {object} Ein Pfeil-Objekt.
+         */
         function getArrowFromPool() {
             if (arrowPool.length > 0) {
                 const arrow = arrowPool.pop();
@@ -639,17 +665,25 @@
                 return arrow;
             }
             return {
-                x: 0, y: 0, width: 0, height: 0, speed: 0, speedX: 0, speedY: 0, 
+                x: 0, y: 0, width: 0, height: 0, speed: 0, speedX: 0, speedY: 0,
                 color: '#ADD8E6', stuck: false, stuckObstacle: null, chargeOffset: 0, aimAngle: 0,
                 stuckX: 0, stuckY: 0, stuckAngle: 0, spawnTime: 0, stuckObstacleInitialY: 0, active: true
             };
         }
 
+        /**
+         * Gibt einen Pfeil an den Pool zurück, um ihn wiederzuverwenden.
+         * @param {object} arrow - Das zurückzugebende Pfeil-Objekt.
+         */
         function returnArrowToPool(arrow) {
             arrow.active = false;
             arrowPool.push(arrow);
         }
 
+        /**
+         * Holt ein Partikel aus dem Pool oder erstellt ein neues.
+         * @returns {object} Ein Partikel-Objekt.
+         */
         function getParticleFromPool() {
             if (targetParticlePool.length > 0) {
                 const particle = targetParticlePool.pop();
@@ -661,11 +695,19 @@
             };
         }
 
+        /**
+         * Gibt ein Partikel an den Pool zurück.
+         * @param {object} particle - Das zurückzugebende Partikel-Objekt.
+         */
         function returnParticleToPool(particle) {
             particle.active = false;
             targetParticlePool.push(particle);
         }
 
+        /**
+         * Holt ein Score-Popup aus dem Pool oder erstellt ein neues.
+         * @returns {object} Ein Score-Popup-Objekt.
+         */
         function getScorePopupFromPool() {
             if (scorePopupPool.length > 0) {
                 const popup = scorePopupPool.pop();
@@ -673,49 +715,84 @@
                 return popup;
             }
             return {
-                x: 0, y: 0, text: '', opacity: 0, life: 0, scale: 0, active: true
+                x: 0, y: 0, text: '', opacity: 0, life: 0, scale: 1, active: true // scale ist jetzt immer 1
             };
         }
 
+        /**
+         * Gibt ein Score-Popup an den Pool zurück.
+         * @param {object} popup - Das zurückzugebende Score-Popup-Objekt.
+         */
         function returnScorePopupToPool(popup) {
             popup.active = false;
             scorePopupPool.push(popup);
         }
-        // --- End helper functions for object pooling ---
+        // --- Ende der Hilfsfunktionen für Objekt-Pooling ---
 
 
-        // --- General helper functions ---
+        // --- Allgemeine Hilfsfunktionen ---
+        /**
+         * Berechnet die Kosten für ein Upgrade basierend auf dem Basispreis und dem aktuellen Level.
+         * @param {number} baseCost - Die Basiskosten des Upgrades.
+         * @param {number} level - Das aktuelle Level des Upgrades.
+         * @returns {number} Die berechneten Kosten.
+         */
         function calculateCost(baseCost, level) {
             return baseCost + level * 25;
         }
 
+        /**
+         * Berechnet die Startanzahl der Pfeile basierend auf dem Upgrade-Level.
+         * @returns {number} Die Startanzahl der Pfeile.
+         */
         function getStartArrows() {
             return GAME_CONSTANTS.INITIAL_ARROWS + arrowsUpgradeLevel * GAME_CONSTANTS.ARROWS_PER_UPGRADE;
         }
 
+        /**
+         * Berechnet den Geschwindigkeitsfaktor für Hindernisse basierend auf dem Upgrade-Level.
+         * @returns {number} Der Geschwindigkeitsfaktor.
+         */
         function getObstacleBaseSpeedFactor() {
             return Math.max(0.5, 1 - speedUpgradeLevel * GAME_CONSTANTS.SPEED_REDUCTION_PER_UPGRADE);
         }
 
+        /**
+         * Berechnet die Länge der Zielhilfe in Prozent der Bildschirmbreite.
+         * @returns {number} Die Länge der Zielhilfe in Prozent.
+         */
         function getAimIndicatorLengthPercentage() {
             return GAME_CONSTANTS.INDICATOR_LENGTH_INITIAL_PERCENTAGE + indicatorUpgradeLevel * GAME_CONSTANTS.INDICATOR_LENGTH_PER_UPGRADE;
         }
 
+        /**
+         * Erstellt die Hintergrundpartikel neu.
+         * Wird bei der Initialisierung und Größenänderung des Canvas aufgerufen.
+         */
         function createParticles() {
-            particles.length = 0; 
+            particles.length = 0; // Leert das bestehende Partikel-Array
+            // Sicherstellen, dass Canvas-Dimensionen > 0 sind, bevor Partikel erstellt werden
+            if (canvas.width === 0 || canvas.height === 0) {
+                console.warn("[WARN] Canvas dimensions are zero, cannot create particles.");
+                return;
+            }
             for (let layer = 0; layer < GAME_CONSTANTS.PARTICLE_LAYERS; layer++) {
                 for (let i = 0; i < GAME_CONSTANTS.NUM_PARTICLES / GAME_CONSTANTS.PARTICLE_LAYERS; i++) {
                     particles.push({
                         x: Math.random() * canvas.width,
                         y: Math.random() * canvas.height,
-                        radius: Math.random() * 0.8 + 0.2,
-                        speed: (Math.random() * 0.3 + 0.1) * (layer + 1),
-                        color: `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`
+                        radius: 0.8, // Fester, kleiner Partikel-Radius für Performance
+                        speed: 0.1, // Feste, langsame Partikel-Geschwindigkeit für Performance
+                        color: `rgba(255, 255, 255, 0.05)` // Feste, sehr geringe Partikel-Deckkraft
                     });
                 }
             }
         }
 
+        /**
+         * Zeichnet die Hintergrundpartikel auf den Canvas.
+         * Aktualisiert auch deren Position für die Bewegung.
+         */
         function drawParticles() {
             particles.forEach(p => {
                 ctx.fillStyle = p.color;
@@ -723,6 +800,7 @@
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.fill();
                 p.y += p.speed;
+                // Wenn ein Partikel den unteren Rand verlässt, wird es oben neu positioniert
                 if (p.y > canvas.height) {
                     p.y = 0;
                     p.x = Math.random() * canvas.width;
@@ -730,183 +808,255 @@
             });
         }
 
+        /**
+         * Passt die Größe des Canvas an die Fenstergröße an und skaliert alle Spielelemente entsprechend.
+         * Dies ist entscheidend für die mobile Performance, da es eine responsive Darstellung gewährleistet.
+         */
         function resizeCanvas() {
-            const dpr = window.devicePixelRatio || 1;
+            const dpr = window.devicePixelRatio || 1; // Holt das Geräte-Pixel-Verhältnis
+            
+            // Setzt die interne Canvas-Breite und -Höhe basierend auf CSS-Breite und DPR
+            // WICHTIG: clientWidth/clientHeight müssen > 0 sein, damit dies funktioniert.
             canvas.width = canvas.clientWidth * dpr;
             canvas.height = canvas.clientHeight * dpr;
-            ctx.scale(dpr, dpr); // Scale context to match device pixel ratio
+            
+            // Überprüfen, ob die Canvas-Dimensionen nach der Zuweisung immer noch 0 sind
+            if (canvas.width === 0 || canvas.height === 0) {
+                console.error("[ERROR] Canvas clientWidth or clientHeight is 0. Check CSS for html, body, .game-container, canvas height/width definitions.");
+                // Versuch, minimale Standardwerte zu setzen, um Abstürze zu vermeiden, auch wenn es nicht korrekt aussieht
+                canvas.width = window.innerWidth * dpr;
+                canvas.height = window.innerHeight * dpr;
+                console.warn(`[WARN] Forcing canvas dimensions to window.innerWidth/Height: ${canvas.width/dpr}x${canvas.height/dpr}`);
+            }
 
-            const scaleFactor = Math.min(canvas.width / dpr, canvas.height / dpr) / BASE_SCREEN_DIMENSION_FOR_SCALING;
+            ctx.scale(dpr, dpr); // Skaliert den Zeichenkontext, um dem DPR zu entsprechen
 
+            // Berechnet einen Skalierungsfaktor basierend auf der kleineren Dimension des LOGISCHEN (CSS) Bildschirms
+            const logicalWidth = canvas.width / dpr;
+            const logicalHeight = canvas.height / dpr;
+            const scaleFactor = Math.min(logicalWidth, logicalHeight) / BASE_SCREEN_DIMENSION_FOR_SCALING;
+
+            // Skaliert Spielelemente basierend auf dem berechneten Faktor
             bow.radius = GAME_CONSTANTS.BOW_RADIUS * scaleFactor;
             currentChargingArrow.width = GAME_CONSTANTS.ARROW_WIDTH * scaleFactor;
             currentChargingArrow.height = GAME_CONSTANTS.ARROW_HEIGHT * scaleFactor;
             target.radius = GAME_CONSTANTS.TARGET_RADIUS * scaleFactor;
 
-            bow.x = canvas.width * 0.07 / dpr; 
-            bow.y = canvas.height / 2 / dpr; 
-            currentChargingArrow.y = bow.y; 
+            // Positioniert Bogen und Ziel relativ zur LOGISCHEN Canvas-Größe
+            bow.x = logicalWidth * 0.07;
+            bow.y = logicalHeight / 2;
+            currentChargingArrow.y = bow.y; // Pfeil Y-Position an Bogen Y-Position anpassen
 
-            target.x = canvas.width / dpr - (canvas.width * 0.07 / dpr); 
+            target.x = logicalWidth - (logicalWidth * 0.07);
 
+            // Initialisiert oder aktualisiert Hindernisse und Partikel nach der Größenänderung
             initializeObstacleColumns();
             setRandomTargetY();
             createParticles();
-            console.log(`Canvas resized: width=${canvas.width/dpr}, height=${canvas.height/dpr}, DPR=${dpr}`);
+            console.log(`[DEBUG] Canvas resized: width=${logicalWidth}, height=${logicalHeight}, DPR=${dpr}`);
         }
 
+        /**
+         * Setzt eine zufällige Y-Position für das Ziel.
+         */
         function setRandomTargetY() {
-            const dpr = window.devicePixelRatio || 1;
-            const minOffset = canvas.height / dpr * 0.2;
-            const maxOffset = canvas.height / dpr * 0.8;
-            
+            const logicalHeight = canvas.height / (window.devicePixelRatio || 1);
+            const minOffset = logicalHeight * 0.2; // Mindest-Y-Offset
+            const maxOffset = logicalHeight * 0.8; // Maximal-Y-Offset
+
             target.y = minOffset + Math.random() * (maxOffset - minOffset);
-            target.x = canvas.width / dpr - (canvas.width / dpr * 0.07); 
-            target.spawnAnimationProgress = 0; // Reset animation progress for new target
+            target.x = canvas.width / (window.devicePixelRatio || 1) - (canvas.width / (window.devicePixelRatio || 1) * 0.07); // Feste X-Position am rechten Rand
+            target.spawnAnimationProgress = 0; // Animation beim Spawnen zurücksetzen
+            target.hitWaveOpacity = 0; // Welle zurücksetzen
+            target.hitWaveRadius = 0; // Welle zurücksetzen
+            console.log(`[DEBUG] Target set to X:${target.x}, Y:${target.y}`);
         }
 
+        /**
+         * Initialisiert die Hindernissäulen für das Spiel.
+         * Die Hindernisse werden prozedural generiert und ihre Größe skaliert.
+         */
         function initializeObstacleColumns() {
-            obstacleColumns = [];
+            obstacleColumns = []; // Leert das Array der Hindernissäulen
             const dpr = window.devicePixelRatio || 1;
-            const scaleFactor = Math.min(canvas.width / dpr, canvas.height / dpr) / BASE_SCREEN_DIMENSION_FOR_SCALING; 
+            const logicalWidth = canvas.width / dpr;
+            const logicalHeight = canvas.height / dpr;
+            const scaleFactor = Math.min(logicalWidth, logicalHeight) / BASE_SCREEN_DIMENSION_FOR_SCALING;
 
-            const obstacleAreaStartX = bow.x + (canvas.width / dpr * 0.40); 
-            const obstacleAreaEndX = canvas.width / dpr - (canvas.width / dpr * 0.20); 
-            
+            // Definiert den Bereich, in dem Hindernisse erscheinen können
+            const obstacleAreaStartX = bow.x + (logicalWidth * 0.40);
+            const obstacleAreaEndX = logicalWidth - (logicalWidth * 0.20);
+
             const effectiveObstacleWidth = Math.max(0, obstacleAreaEndX - obstacleAreaStartX);
             const divisor = (GAME_CONSTANTS.NUM_OBSTACLE_COLUMNS > 1) ? (GAME_CONSTANTS.NUM_OBSTACLE_COLUMNS - 1) : 1;
-            const spacingX = (effectiveObstacleWidth / divisor) * 0.95; 
+            const spacingX = (effectiveObstacleWidth / divisor) * 0.95; // Abstand zwischen den Spalten
 
+            // Skaliert die Hindernis-Linienbreite und Segmenthöhen
             const scaledObstacleLineWidth = GAME_CONSTANTS.OBSTACLE_LINE_WIDTH * scaleFactor;
             const scaledBaseObstacleSegmentHeight = GAME_CONSTANTS.BASE_OBSTACLE_SEGMENT_HEIGHT * scaleFactor;
             const scaledBaseObstacleGapHeight = GAME_CONSTANTS.BASE_OBSTACLE_GAP_HEIGHT * scaleFactor;
 
-
             for (let col = 0; col < GAME_CONSTANTS.NUM_OBSTACLE_COLUMNS; col++) {
                 const currentColumn = [];
-                const colX = obstacleAreaStartX + col * spacingX;
+                const colX = obstacleAreaStartX + col * spacingX; // X-Position der aktuellen Spalte
+                // Bestimmt die Bewegungsrichtung der Spalte (alternierend auf/ab)
                 const columnDirection = (col % 2 === 0) ? 1 : -1;
+                // Berechnet die Geschwindigkeit der Spalte basierend auf Basisgeschwindigkeit und Upgrade-Faktor
                 const columnSpeed = (GAME_CONSTANTS.OBSTACLE_MIN_BASE_SPEED + Math.random() * (GAME_CONSTANTS.OBSTACLE_MAX_BASE_SPEED - GAME_CONSTANTS.OBSTACLE_MIN_BASE_SPEED)) * getObstacleBaseSpeedFactor();
 
                 let currentY = 0;
                 let segmentCount = 0;
-                while (currentY < canvas.height / dpr + scaledBaseObstacleSegmentHeight) { 
-                    const isGap = (segmentCount % 2 === 1);
+                // Generiert Segmente, bis der gesamte Canvas abgedeckt ist
+                while (currentY < logicalHeight + scaledBaseObstacleSegmentHeight) {
+                    const isGap = (segmentCount % 2 === 1); // Alterniert zwischen Segment und Lücke
                     const segmentHeight = isGap ? scaledBaseObstacleGapHeight : scaledBaseObstacleSegmentHeight;
 
                     currentColumn.push({
                         x: colX,
                         y: currentY,
-                        width: scaledObstacleLineWidth, 
+                        width: scaledObstacleLineWidth,
                         height: segmentHeight,
                         isGap: isGap,
                         speed: columnSpeed,
                         direction: columnDirection,
-                        color: '#ADD8E6', 
-                        hitEffectTime: 0
+                        color: '#ADD8E6',
+                        hitEffectTime: 0, // Zeitstempel für den Treffer-Effekt
+                        hitColorOpacity: 0 // Zusätzliche Eigenschaft für den einfachen Treffer-Effekt
                     });
                     currentY += segmentHeight;
                     segmentCount++;
                 }
                 obstacleColumns.push(currentColumn);
             }
+            console.log(`[DEBUG] Obstacle columns initialized. Total columns: ${obstacleColumns.length}`);
         }
 
-        // New function to reset all game elements for a new round
+        /**
+         * Setzt alle Spielelemente für eine neue Runde zurück.
+         * Dies ist wichtig, um einen sauberen Start zu gewährleisten und Speicherlecks zu vermeiden.
+         */
         function resetGameElementsForNewRound() {
             currentArrows = getStartArrows();
-            roundPoints = 0; 
-            streak = 0; 
+            roundPoints = 0;
+            streak = 0;
             targetsHitInRound = 0;
-            lastArrowFired = false; // Reset flag for new round
-            
-            // Clear all active game elements and reset pools
+            lastArrowFired = false; // Flag für neue Runde zurücksetzen
+
+            // Alle aktiven Spielelemente leeren und Pools zurücksetzen
+            // Dies ist effizienter als das Erstellen neuer Objekte
             activeArrows.forEach(returnArrowToPool);
             activeArrows = [];
             activeTargetHitParticles.forEach(returnParticleToPool);
             activeTargetHitParticles = [];
             activeScorePopups.forEach(returnScorePopupToPool);
             activeScorePopups = [];
-            arrowPool.length = 0; // Clear pools entirely
-            targetParticlePool.length = 0;
-            scorePopupPool.length = 0;
-
-            resetCurrentChargingArrow(); 
-            setRandomTargetY();
-            initializeObstacleColumns(); // Ensure obstacles are re-initialized
-            // Do NOT call updateUI() or setGameState() here, startGameRound() will handle it
+            
+            resetCurrentChargingArrow(); // Aktuellen Lade-Pfeil zurücksetzen
+            setRandomTargetY(); // Neues Ziel setzen
+            initializeObstacleColumns(); // Hindernisse neu initialisieren
+            console.log("[DEBUG] Game elements reset for new round.");
         }
 
-        // Initial application setup (called once on window.onload)
+        /**
+         * Initialisiert die Anwendung beim Laden des Fensters.
+         * Lädt Spieldaten, passt die Canvas-Größe an, erstellt Partikel und startet den Spiel-Loop.
+         */
         function initApplication() {
-            loadGameData(); // Load data on init to ensure latest scores/upgrades are shown
-            resizeCanvas(); // Initial canvas resize
-            createParticles(); // Create background particles
-            updateUI(); // Update UI for start screen
-            setGameState(GAME_STATES.START_SCREEN); // Set initial state to start screen
-            update(); // Start the animation loop
+            console.log("[DEBUG] initApplication called.");
+            loadGameData(); // Lädt Daten, um die neuesten Scores/Upgrades anzuzeigen
+            resizeCanvas(); // Initiales Anpassen der Canvas-Größe
+            createParticles(); // Erstellt Hintergrundpartikel
+            updateUI(); // Aktualisiert die UI für den Startbildschirm
+            setGameState(GAME_STATES.START_SCREEN); // Setzt den initialen Zustand auf den Startbildschirm
+            console.log("[DEBUG] Initial game state set to START_SCREEN. Canvas is hidden.");
+            update(); // Startet den Animations-Loop
+            console.log("[DEBUG] Main update loop started.");
         }
 
-        // Function to start a new game round (called by Start Game and Restart buttons)
+        /**
+         * Startet eine neue Spielrunde.
+         * Wird vom "Start Game" und "Restart" Button aufgerufen.
+         */
         function startGameRound() {
-            // Clear any pending game over timeout
+            console.log("[DEBUG] Starting game round.");
+            // Löscht alle ausstehenden Game-Over-Timeouts
             if (gameEndTimeoutId) {
                 clearTimeout(gameEndTimeoutId);
                 gameEndTimeoutId = null;
             }
-            resetGameElementsForNewRound(); // Reset all game elements
-            updateUI(); // Update UI with new game values
-            setGameState(GAME_STATES.GAME_PLAYING); // Immediately start game
+            resetGameElementsForNewRound(); // Setzt alle Spielelemente zurück
+            updateUI(); // Aktualisiert die UI mit neuen Spielwerten
+            setGameState(GAME_STATES.GAME_PLAYING); // Startet das Spiel sofort
+            console.log("[DEBUG] Game state set to GAME_PLAYING.");
+            // Log properties of main game elements after starting game
+            console.log("[DEBUG] Bow properties:", bow);
+            console.log("[DEBUG] Current Charging Arrow properties:", currentChargingArrow);
+            console.log("[DEBUG] Target properties:", target);
+            console.log("[DEBUG] Sample Obstacle properties (first in first column):", obstacleColumns[0] ? obstacleColumns[0][0] : "No obstacles");
         }
 
-        // Function to go back to the menu (called by Menu button)
+        /**
+         * Wechselt zurück zum Hauptmenü.
+         * Wird vom "Menu" Button aufgerufen.
+         */
         function goToMenu() {
+            console.log("[DEBUG] Going to menu.");
             stopBackgroundMusic();
             setGameState(GAME_STATES.START_SCREEN);
-            updateUI(); // Update UI for start screen
-            // No need to reset game elements here, they will be reset by startGameRound()
-            // when a new game is initiated from the start screen.
+            updateUI(); // Aktualisiert die UI für den Startbildschirm
+            // Die Spielelemente müssen hier nicht zurückgesetzt werden; dies geschieht, wenn ein neues Spiel gestartet wird.
         }
 
+        /**
+         * Setzt den aktuell geladenen Pfeil und den Bogenzustand zurück.
+         */
         function resetCurrentChargingArrow() {
-            // If a cooldown is active, clear the timer
+            // Wenn ein Cooldown aktiv ist, den Timer löschen
             if (cooldownTimeoutId) {
                 clearTimeout(cooldownTimeoutId);
                 cooldownTimeoutId = null;
             }
-            arrowSpawnCooldown = false; // Reset cooldown
-            isBowstringSnappingBack = false; // Reset animation
-            snapbackAnimationStartTime = 0; // Reset animation time
-            chargePower = 0; // Reset charge so string is in resting position
-            currentChargingArrow.aimAngle = 0; // Reset arrow aim angle
-            displayBowAngle = 0; // Reset display bow angle
+            arrowSpawnCooldown = false; // Cooldown zurücksetzen
+            isBowstringSnappingBack = false; // Animation zurücksetzen
+            snapbackAnimationStartTime = 0; // Animationszeit zurücksetzen
+            chargePower = 0; // Ladung zurücksetzen, damit die Sehne in Ruheposition ist
+            currentChargingArrow.aimAngle = 0; // Zielwinkel des Pfeils zurücksetzen
+            displayBowAngle = 0; // Anzeige-Bogenwinkel zurücksetzen
 
             const dpr = window.devicePixelRatio || 1;
-            currentChargingArrow = {
-                x: bow.x + 5, 
-                y: bow.y,
-                width: GAME_CONSTANTS.ARROW_WIDTH * (Math.min(canvas.width/dpr, canvas.height/dpr) / BASE_SCREEN_DIMENSION_FOR_SCALING),
-                height: GAME_CONSTANTS.ARROW_HEIGHT * (Math.min(canvas.width/dpr, canvas.height/dpr) / BASE_SCREEN_DIMENSION_FOR_SCALING),
-                speed: 0, speedX: 0, speedY: 0, 
+            const logicalWidth = canvas.width / dpr;
+            const logicalHeight = canvas.height / dpr;
+            const scaleFactor = Math.min(logicalWidth, logicalHeight) / BASE_SCREEN_DIMENSION_FOR_SCALING;
+
+            // Setzt die Eigenschaften des Lade-Pfeils auf Standardwerte zurück
+            Object.assign(currentChargingArrow, {
+                x: bow.x + 5, // Basierend auf Bogenposition
+                y: bow.y,     // Basierend auf Bogenposition
+                width: GAME_CONSTANTS.ARROW_WIDTH * scaleFactor,
+                height: GAME_CONSTANTS.ARROW_HEIGHT * scaleFactor,
+                speed: 0, speedX: 0, speedY: 0,
                 color: '#ADD8E6', stuck: false, stuckObstacle: null, chargeOffset: 0, aimAngle: 0,
                 stuckX: 0, stuckY: 0, stuckAngle: 0, spawnTime: 0, stuckObstacleInitialY: 0, active: true
-            };
-            isCharging = false;
-            // chargePower is already set to 0 here
+            });
         }
 
+        /**
+         * Zeichnet den Bogen auf den Canvas.
+         * Nutzt Transformationen (translate, rotate) für die Bogen- und Pfeilpositionierung.
+         */
         function drawBow() {
+            // console.log("[DEBUG] Drawing bow.");
             ctx.strokeStyle = '#00BFFF';
             ctx.lineWidth = 5;
             ctx.lineCap = 'round';
 
-            // Draw bow arms relative to the pivot (0,0)
+            // Zeichnet die Bogenarme relativ zum Drehpunkt (0,0)
             ctx.beginPath();
             ctx.moveTo(-15, -bow.radius * 1.8);
             ctx.bezierCurveTo(
-                bow.radius * 0.5 - 5, -bow.radius * 2.2, // relative to pivot
-                bow.radius * 1.5 - 5, -bow.radius * 1.2, // relative to pivot
-                0, 0 // This is the pivot point
+                bow.radius * 0.5 - 5, -bow.radius * 2.2,
+                bow.radius * 1.5 - 5, -bow.radius * 1.2,
+                0, 0
             );
             ctx.stroke();
 
@@ -919,66 +1069,39 @@
             );
             ctx.stroke();
 
-            // String attachment points relative to the pivot (0,0)
+            // Befestigungspunkte der Sehne relativ zum Drehpunkt (0,0)
             const stringTopAttachY = -bow.radius * 1.5;
             const stringBottomAttachY = bow.radius * 1.5;
 
-            // The string's pull-back is now purely horizontal because the canvas is rotated.
-            // The arrow's nock is at (0,0) when not pulled back.
+            // Der Rückzug der Sehne ist rein horizontal, da der Canvas gedreht wird.
+            // Der Pfeilnock ist bei (0,0), wenn nicht zurückgezogen.
             const arrowNockPullbackX = -(chargePower / maxCharge) * GAME_CONSTANTS.MAX_PULLBACK_DISTANCE;
 
             ctx.strokeStyle = '#ADD8E6';
-            ctx.lineWidth = 2 + (chargePower / maxCharge) * 2;
-            
-            // Add glow when fully charged
-            if (chargePower >= maxCharge) {
-                ctx.shadowBlur = 20; 
-                ctx.shadowColor = `rgba(0, 255, 255, 1)`; // Strong glow
-            } else if (chargePower > 80) {
-                const glowAlpha = (chargePower - 80) / 20 * 0.8; 
-                ctx.shadowBlur = 15; 
-                ctx.shadowColor = `rgba(0, 255, 255, ${glowAlpha})`;
-            } else {
-                ctx.shadowBlur = 0;
-            }
+            ctx.lineWidth = 2 + (chargePower / maxCharge) * 1; // Reduzierte Linienbreiten-Skalierung für Sehne
+
+            ctx.shadowBlur = 0; // Schatten komplett entfernt für maximale Performance
 
             ctx.beginPath();
-            ctx.moveTo(0, stringTopAttachY); // String top attachment point (relative to pivot)
-            ctx.lineTo(arrowNockPullbackX, 0); // Arrow nock point (relative to pivot, pulled back horizontally)
-            ctx.lineTo(0, stringBottomAttachY); // String bottom attachment point (relative to pivot)
+            ctx.moveTo(0, stringTopAttachY); // Oberer Befestigungspunkt der Sehne (relativ zum Drehpunkt)
+            ctx.lineTo(arrowNockPullbackX, 0); // Pfeilnock-Punkt (relativ zum Drehpunkt, horizontal zurückgezogen)
+            ctx.lineTo(0, stringBottomAttachY); // Unterer Befestigungspunkt der Sehne (relativ zum Drehpunkt)
             ctx.stroke();
-            ctx.shadowBlur = 0; 
+            ctx.shadowBlur = 0; // Schatten zurücksetzen für andere Elemente
         }
 
+        /**
+         * Zeichnet einen Pfeil auf den Canvas.
+         * @param {object} arrowToDraw - Das zu zeichnende Pfeil-Objekt.
+         */
         function drawArrow(arrowToDraw) {
-            let arrowColor = '#00BFFF'; // Default blue
-            let arrowGlowStrength = 10;
-            let arrowGlowColor = '#00BFFF';
-
-            if (arrowToDraw === currentChargingArrow) {
-                // Charging arrow glow (no color change, just stronger glow)
-                arrowGlowStrength = 10 + (chargePower / maxCharge) * 40; // Glow from 10 to 50
-                arrowGlowColor = `rgba(0, 255, 255, ${chargePower / maxCharge})`; // Fading blue glow
-            } else if (arrowToDraw.speed > 0 && !arrowToDraw.stuck) { 
-                // Flying arrow retains glow from its charge state or default
-                // If it was fully charged when shot, give it max glow
-                if (initialChargePowerAtRelease >= maxCharge) { 
-                    arrowGlowStrength = 50; // Max glow for flying arrow if fully charged when shot
-                    arrowGlowColor = `rgba(0, 255, 255, 1)`;
-                } else {
-                    arrowGlowStrength = 25; // Good glow for flying arrow
-                    arrowGlowColor = `rgba(0, 255, 255, ${Math.min(1, arrowToDraw.speed / GAME_CONSTANTS.MAX_ARROW_SPEED * 1.5)})`;
-                }
-            } else {
-                // Stuck arrow or default
-                arrowGlowStrength = 10;
-                arrowGlowColor = '#00BFFF';
-            }
+            // console.log("[DEBUG] Drawing arrow.");
+            let arrowColor = '#00BFFF'; // Standardblau
 
             ctx.strokeStyle = arrowColor;
             ctx.lineWidth = arrowToDraw.height;
-            ctx.shadowBlur = arrowGlowStrength;
-            ctx.shadowColor = arrowGlowColor;
+            ctx.shadowBlur = 0; // Schatten komplett entfernt für maximale Performance
+            ctx.shadowColor = arrowColor; // Muss trotzdem gesetzt werden, auch wenn Blur 0 ist
 
             ctx.beginPath();
             ctx.moveTo(0, 0);
@@ -993,139 +1116,114 @@
             ctx.closePath();
             ctx.fill();
 
-            const featherColor = '#ADD8E6';
-            const featherSize = arrowToDraw.height * 4;
-            const featherXOffset = 2.2;
-
-            ctx.fillStyle = featherColor;
-            ctx.beginPath();
-            ctx.moveTo(featherXOffset, 0);
-            ctx.lineTo(featherXOffset - featherSize, -featherSize / 2);
-            ctx.lineTo(featherXOffset - featherSize, featherSize / 2);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(featherXOffset - featherSize / 2, 0);
-            ctx.lineTo(featherXOffset - featherSize * 1.5, -featherSize / 2);
-            ctx.lineTo(featherXOffset - featherSize * 1.5, featherSize / 2);
-            ctx.closePath();
-            ctx.fill();
-            
-            ctx.shadowBlur = 0; // Reset shadow for other elements
+            ctx.shadowBlur = 0; // Schatten zurücksetzen für andere Elemente
         }
 
+        /**
+         * Zeichnet die Zielhilfe (Punkte) auf den Canvas.
+         */
         function drawAimIndicator() {
-            // Draw indicator only if charging and no cooldown/snapback is active
-            if (currentGameState !== GAME_STATES.GAME_PLAYING || !isCharging || arrowSpawnCooldown || isBowstringSnappingBack) return; 
+            // console.log("[DEBUG] Drawing aim indicator.");
+            // Zeichnet den Indikator nur, wenn geladen wird und kein Cooldown/Rückschnell-Effekt aktiv ist
+            if (currentGameState !== GAME_STATES.GAME_PLAYING || !isCharging || arrowSpawnCooldown || isBowstringSnappingBack) return;
 
-            ctx.save();
-            
+            ctx.save(); // Kontext speichern
+
             const pivotX = bow.x + 5;
             const pivotY = bow.y;
-            ctx.translate(pivotX, pivotY); // Move origin to bow's pivot
-            ctx.rotate(currentChargingArrow.aimAngle); // Rotate the entire context
+            ctx.translate(pivotX, pivotY); // Ursprung zum Drehpunkt des Bogens verschieben
+            ctx.rotate(currentChargingArrow.aimAngle); // Gesamten Kontext drehen
 
             const indicatorLength = canvas.width / (window.devicePixelRatio || 1) * (getAimIndicatorLengthPercentage() / 100);
-            const numDots = Math.floor(indicatorLength / 15);
+            const numDots = Math.floor(indicatorLength / 25); // Noch weniger Punkte für den Indikator
             const dotSpacing = indicatorLength / numDots;
 
-            ctx.fillStyle = 'rgba(200, 200, 200, 0.5)';
-            ctx.shadowBlur = 5; 
-            ctx.shadowColor = 'rgba(200, 200, 200, 0.5)';
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.2)'; // Noch weniger opak
+            ctx.shadowBlur = 0; // Schatten komplett entfernt
 
             for (let i = 0; i < numDots; i++) {
-                const x = i * dotSpacing + (currentChargingArrow.width + 10); // Start dots after arrow tip
+                const x = i * dotSpacing + (currentChargingArrow.width + 10); // Punkte nach der Pfeilspitze beginnen
                 const y = 0;
                 ctx.beginPath();
-                ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                ctx.arc(x, y, 0.8, 0, Math.PI * 2); // Noch kleinere Punkte
                 ctx.fill();
             }
 
-            ctx.shadowBlur = 0; 
-            ctx.restore();
+            ctx.shadowBlur = 0; // Schatten zurücksetzen
+            ctx.restore(); // Kontext wiederherstellen
         }
 
-
+        /**
+         * Zeichnet das Ziel auf den Canvas.
+         */
         function drawTarget() {
+            // console.log("[DEBUG] Drawing target.");
             ctx.save();
-            // Apply fade-in animation for spawning
-            ctx.globalAlpha = target.spawnAnimationProgress; // Only fade-in, no wave here
+            // Wendet die Einblend-Animation beim Spawnen an
+            ctx.globalAlpha = target.spawnAnimationProgress;
 
             ctx.strokeStyle = target.color;
-            ctx.lineWidth = 5;
-            ctx.shadowBlur = 15; 
-            ctx.shadowColor = '#00BFFF';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 0; // Schatten komplett entfernt
+            ctx.shadowColor = target.color; // Muss trotzdem gesetzt werden, auch wenn Blur 0 ist
 
             ctx.beginPath();
             ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
             ctx.stroke();
 
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.arc(target.x, target.y, target.radius * 0.6, 0, Math.PI * 2);
-            ctx.stroke();
-
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(target.x, target.y, target.radius * 0.3, 0, Math.PI * 2);
-            ctx.stroke();
-
-            ctx.shadowBlur = 0; 
-            ctx.restore(); // Restore globalAlpha and other context properties
-
-            // Draw hit wave animation (separate from target's alpha)
-            if (target.hitWaveOpacity > 0) {
-                ctx.strokeStyle = `rgba(0, 255, 255, ${target.hitWaveOpacity})`;
-                ctx.lineWidth = 5;
-                ctx.beginPath();
-                ctx.arc(target.x, target.y, target.hitWaveRadius, 0, Math.PI * 2);
-                ctx.stroke();
-            }
+            ctx.shadowBlur = 0; // Schatten zurücksetzen
+            ctx.restore(); // globalAlpha und andere Kontext-Eigenschaften wiederherstellen
         }
 
+        /**
+         * Zeichnet die Hindernisse auf den Canvas.
+         */
         function drawObstacles() {
+            // console.log("[DEBUG] Drawing obstacles.");
             obstacleColumns.forEach(column => {
                 column.forEach(obs => {
-                    if (!obs.isGap) {
+                    if (!obs.isGap) { // Nur zeichnen, wenn es kein "Gap"-Segment ist
                         ctx.save();
-                        
-                        // Red shimmering effect for hit obstacles
+
+                        // Einfacher Farbübergang für getroffene Hindernisse, kein Schatten
                         if (obs.hitEffectTime && (Date.now() - obs.hitEffectTime) < GAME_CONSTANTS.HIT_ANIMATION_DURATION_MS) {
                             const elapsed = Date.now() - obs.hitEffectTime;
                             const progress = Math.min(1, elapsed / GAME_CONSTANTS.HIT_ANIMATION_DURATION_MS);
-                            const opacity = 1 - progress; // Fades out
-                            const glowStrength = Math.sin(progress * Math.PI) * 35; // Even stronger shimmer effect
-
-                            ctx.strokeStyle = `rgba(255, 0, 0, ${opacity})`; // Red color
-                            ctx.shadowBlur = glowStrength; 
-                            ctx.shadowColor = `rgba(255, 0, 0, ${opacity})`;
+                            const opacity = 1 - progress; // Verblasst
+                            
+                            ctx.strokeStyle = `rgba(255, 0, 0, ${opacity})`; // Rote Farbe
+                            ctx.shadowBlur = 0; // Schatten komplett entfernt
                         } else {
                             ctx.strokeStyle = obs.color;
                             ctx.shadowBlur = 0;
                         }
 
-                        ctx.lineWidth = obs.width; 
-                        ctx.lineCap = 'round'; 
+                        ctx.lineWidth = obs.width;
+                        ctx.lineCap = 'round';
 
                         ctx.beginPath();
                         ctx.moveTo(obs.x, obs.y);
                         ctx.lineTo(obs.x, obs.y + obs.height);
                         ctx.stroke();
-                        
-                        ctx.restore(); // Restore context to remove shadow for other elements
+
+                        ctx.restore(); // Kontext wiederherstellen, um Schatten für andere Elemente zu entfernen
                     }
                 });
             });
         }
 
+        /**
+         * Zeichnet die Score-Popups auf den Canvas.
+         */
         function drawScorePopups() {
-            activeScorePopups.forEach(popup => { 
+            // console.log("[DEBUG] Drawing score popups.");
+            activeScorePopups.forEach(popup => {
                 if (popup.active) {
                     ctx.save();
                     ctx.globalAlpha = popup.opacity;
                     ctx.fillStyle = 'white';
-                    ctx.font = `bold ${20 * popup.scale}px Inter`;
+                    // Feste Font-Größe für Performance
+                    ctx.font = `bold 14px Inter`; // Noch kleinere Schriftgröße
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText(popup.text, popup.x, popup.y);
@@ -1134,8 +1232,12 @@
             });
         }
 
+        /**
+         * Zeichnet die Partikel, die beim Zieltreffer entstehen, auf den Canvas.
+         */
         function drawTargetHitParticles() {
-            activeTargetHitParticles.forEach(p => { 
+            // console.log("[DEBUG] Drawing target hit particles.");
+            activeTargetHitParticles.forEach(p => {
                 if (p.active) {
                     ctx.save();
                     ctx.globalAlpha = p.opacity;
@@ -1148,75 +1250,89 @@
             });
         }
 
+        /**
+         * Die Haupt-Zeichenfunktion, die alle Spielelemente rendert.
+         * Wird in jedem Frame des Animations-Loops aufgerufen.
+         */
         function draw() {
+            // console.log("[DEBUG] Draw loop running.");
             const dpr = window.devicePixelRatio || 1;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawParticles();
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Löscht den gesamten Canvas
+            drawParticles(); // Zeichnet Hintergrundpartikel
 
-            // Draw game area hit effect
+            // Zeichnet den Treffer-Effekt des Spielbereichs (nur ein kurzer, nicht-schattierter Blitz)
             if (gameAreaHitEffectOpacity > 0) {
                 ctx.save();
-                ctx.strokeStyle = `rgba(0, 255, 255, ${gameAreaHitEffectOpacity})`; // Green-blue
-                ctx.lineWidth = 25; // Even thicker border
-                ctx.shadowBlur = 50; // Even stronger glow
-                ctx.shadowColor = `rgba(0, 255, 255, ${gameAreaHitEffectOpacity})`;
-                ctx.strokeRect(0, 0, canvas.width / dpr, canvas.height / dpr); // Draw around the canvas
+                ctx.strokeStyle = `rgba(0, 255, 255, ${gameAreaHitEffectOpacity * 2})`; // Multipliziert mit 2 für mehr Sichtbarkeit
+                ctx.lineWidth = 8; // Leicht erhöht für Sichtbarkeit
+                ctx.shadowBlur = 0; // Schatten komplett entfernt
+                ctx.strokeRect(0, 0, canvas.width / dpr, canvas.height / dpr); // Zeichnet um den Canvas herum
                 ctx.restore();
             }
 
             if (currentGameState === GAME_STATES.GAME_PLAYING) {
-                // Draw bow and charging arrow together with rotation
+                // Bogen und Lade-Pfeil zusammen mit Rotation zeichnen
                 ctx.save();
-                const pivotX = bow.x + 5; // Fixed pivot point for the bow
+                const pivotX = bow.x + 5; // Fester Drehpunkt für den Bogen
                 const pivotY = bow.y;
-                ctx.translate(pivotX, pivotY); // Move origin to bow's pivot
-                
-                // Always rotate by displayBowAngle for visual bow movement
-                ctx.rotate(displayBowAngle); 
-                drawBow(); 
+                ctx.translate(pivotX, pivotY); // Ursprung zum Drehpunkt des Bogens verschieben
 
-                // Draw the charging arrow only if not in cooldown
-                if (!arrowSpawnCooldown) { 
+                // Immer nach displayBowAngle für die visuelle Bogenbewegung drehen
+                ctx.rotate(displayBowAngle);
+                drawBow();
+
+                // Den Lade-Pfeil nur zeichnen, wenn kein Cooldown aktiv ist
+                if (!arrowSpawnCooldown) {
                     ctx.save();
                     const arrowStartX = -(chargePower / maxCharge) * GAME_CONSTANTS.MAX_PULLBACK_DISTANCE;
                     const arrowStartY = 0;
                     ctx.translate(arrowStartX, arrowStartY);
-                    drawArrow(currentChargingArrow); 
+                    drawArrow(currentChargingArrow);
                     ctx.restore();
                 }
-                ctx.restore(); 
+                ctx.restore();
 
-                drawAimIndicator(); 
+                drawAimIndicator(); // Zielhilfe zeichnen
 
+                // Aktive Pfeile zeichnen
                 activeArrows.forEach(arrow => {
                     ctx.save();
                     ctx.translate(arrow.x, arrow.y);
-                    // For active arrows, apply their individual rotation based on speed
+                    // Für aktive Pfeile die individuelle Rotation basierend auf der Geschwindigkeit anwenden
                     ctx.rotate(Math.atan2(arrow.speedY, arrow.speedX));
                     drawArrow(arrow);
                     ctx.restore();
-                }); 
-                drawObstacles();
-                drawTarget();
-                drawTargetHitParticles();
-                drawScorePopups();
+                });
+                drawObstacles(); // Hindernisse zeichnen
+                drawTarget(); // Ziel zeichnen
+                drawTargetHitParticles(); // Trefferpartikel zeichnen
+                drawScorePopups(); // Score-Popups zeichnen
             }
         }
 
+        /**
+         * Die Haupt-Update-Funktion des Spiels.
+         * Aktualisiert die Logik aller Spielelemente in jedem Frame.
+         */
         function update() {
+            // console.log("[DEBUG] Update loop running. Current state:", currentGameState);
+            // Wenn das Spiel nicht im Spielzustand ist, den Animations-Loop fortsetzen, aber keine Spiellogik ausführen
             if (currentGameState !== GAME_STATES.GAME_PLAYING) {
                 animationFrameId = requestAnimationFrame(update);
                 return;
             }
 
             const dpr = window.devicePixelRatio || 1;
+            // Aktualisiert die Positionen der Hindernisse
             obstacleColumns.forEach(column => {
-                const baseSpeedFactor = getObstacleBaseSpeedFactor();
+                // Die Basisgeschwindigkeitsfaktor wird bereits durch Upgrades beeinflusst
                 column.forEach(obs => {
+                    // Die aktuelle Hindernisgeschwindigkeit erhöht sich mit jedem Zieltreffer
                     const currentObstacleSpeed = obs.speed * (1 + targetsHitInRound * GAME_CONSTANTS.OBSTACLE_SPEED_INCREASE_PER_TARGET);
                     obs.y += currentObstacleSpeed * obs.direction;
 
-                    if (obs.direction === 1 && obs.y > canvas.height / dpr) { 
+                    // Wenn ein Hindernis den Bildschirm verlässt, wird es auf der gegenüberliegenden Seite neu positioniert
+                    if (obs.direction === 1 && obs.y > canvas.height / dpr) {
                         let highestYInColumn = Infinity;
                         column.forEach(segment => {
                             if (segment.y < highestYInColumn) {
@@ -1236,95 +1352,93 @@
                 });
             });
 
-            // Update target spawn animation
+            // Aktualisiert die Ziel-Spawn-Animation
             if (target.spawnAnimationProgress < 1) {
-                target.spawnAnimationProgress += 0.02; // Slower fade-in
+                target.spawnAnimationProgress += 0.05; // Noch schnelleres Einblenden
                 if (target.spawnAnimationProgress > 1) {
                     target.spawnAnimationProgress = 1;
                 }
             }
 
-            // Update target hit wave animation
-            if (target.hitWaveOpacity > 0) {
-                target.hitWaveRadius += GAME_CONSTANTS.TARGET_HIT_EFFECT_GROWTH;
-                target.hitWaveOpacity -= GAME_CONSTANTS.TARGET_HIT_EFFECT_DECAY;
-                if (target.hitWaveOpacity < 0) {
-                    target.hitWaveOpacity = 0;
-                    target.hitWaveRadius = 0;
-                }
-            }
-
-            // Update game area hit effect
+            // Aktualisiert den Treffer-Effekt des Spielbereichs
             if (gameAreaHitEffectOpacity > 0) {
                 const elapsed = Date.now() - gameAreaHitEffectTime;
                 const progress = Math.min(1, elapsed / GAME_AREA_HIT_EFFECT_DURATION_MS);
-                gameAreaHitEffectOpacity = 1 - progress; // Fade out
+                gameAreaHitEffectOpacity = 1 - progress; // Verblasst
                 if (gameAreaHitEffectOpacity < 0) {
                     gameAreaHitEffectOpacity = 0;
                 }
             }
 
-
+            // Logik für das Spannen des Bogens und die Bogen-Animation
             if (isCharging) {
                 chargePower = Math.min(maxCharge, chargePower + chargeRate);
 
-                // Smooth aiming animation for the *display* bow angle
+                // Sanfte Ziel-Animation für den *visuellen* Bogenwinkel
                 const elapsed = Date.now() - aimAnimationStartTime;
                 const progress = Math.min(1, elapsed / aimAnimationDuration);
                 displayBowAngle = startDisplayBowAngle + (targetDisplayBowAngle - startDisplayBowAngle) * progress;
                 displayBowAngle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, displayBowAngle));
 
-            } else if (isBowstringSnappingBack) { // Logic for bowstring animation
+            } else if (isBowstringSnappingBack) { // Logik für die Bogensehnen-Animation
                 const elapsed = Date.now() - snapbackAnimationStartTime;
                 const progress = Math.min(1, elapsed / snapbackAnimationDuration);
-                
-                // Interpolate charge power back to 0
-                chargePower = initialChargePowerAtRelease * (1 - progress); 
-                
-                // Interpolate display angle back to 0
+
+                // Ladeleistung zurück auf 0 interpolieren
+                chargePower = initialChargePowerAtRelease * (1 - progress);
+
+                // Anzeige-Winkel zurück auf 0 interpolieren
                 displayBowAngle = initialAimAngleAtRelease * (1 - progress);
 
                 if (progress >= 1) {
                     isBowstringSnappingBack = false;
-                    chargePower = 0; 
-                    displayBowAngle = 0; // Ensure display angle is 0 at the end
+                    chargePower = 0;
+                    displayBowAngle = 0; // Sicherstellen, dass der Anzeige-Winkel am Ende 0 ist
                 }
             }
 
+            // Aktualisiert die Positionen und Kollisionen der aktiven Pfeile
             for (let i = activeArrows.length - 1; i >= 0; i--) {
                 const arrow = activeArrows[i];
-                if (!arrow.active) continue; 
+                if (!arrow.active) continue;
 
                 if (arrow.stuck) {
+                    // Wenn der Pfeil steckt, bewegt er sich mit dem Hindernis
                     arrow.x = arrow.stuckX;
                     arrow.y = arrow.stuckY + (arrow.stuckObstacle.y - arrow.stuckObstacleInitialY);
 
+                    // Prüft, ob die Steck-Dauer überschritten ist
                     if ((Date.now() - arrow.spawnTime) > GAME_CONSTANTS.STUCK_ARROW_DURATION_MS) {
-                        returnArrowToPool(arrow);
-                        activeArrows.splice(i, 1); 
-                        // If this was the last arrow and it got stuck, trigger game over
+                        returnArrowToPool(arrow); // Pfeil in den Pool zurückgeben
+                        activeArrows.splice(i, 1); // Pfeil aus dem aktiven Array entfernen
+                        // Wenn dies der letzte Pfeil war und er stecken blieb, Game Over auslösen
                         if (lastArrowFired && activeArrows.length === 0) {
                             setGameState(GAME_STATES.GAME_OVER);
                         }
                     }
                 } else {
+                    // Pfeil bewegen
                     arrow.x += arrow.speedX;
                     arrow.y += arrow.speedY;
 
-                    const arrowTipX = arrow.x + (arrow.width + 10) * Math.cos(Math.atan2(arrow.speedY, arrow.speedX)); 
+                    // Berechnet die Position der Pfeilspitze für die Kollisionserkennung
+                    const arrowTipX = arrow.x + (arrow.width + 10) * Math.cos(Math.atan2(arrow.speedY, arrow.speedX));
                     const arrowTipY = arrow.y + (arrow.width + 10) * Math.sin(Math.atan2(arrow.speedY, arrow.speedX));
                     const collisionRadius = GAME_CONSTANTS.ARROW_TIP_COLLISION_RADIUS;
 
                     let collisionDetected = false;
                     let hitObstacle = null;
 
+                    // Kollisionserkennung mit Hindernissen
+                    // Optimierung: Prüft nur die Spalten, die sich in der Nähe des Pfeils befinden
                     for (let col = 0; col < obstacleColumns.length; col++) {
                         const column = obstacleColumns[col];
-                        const obsX = column[0].x; 
+                        const obsX = column[0].x;
 
                         const columnMinX = obsX - collisionRadius;
                         const columnMaxX = obsX + column[0].width + collisionRadius;
 
+                        // Wenn der Pfeil sich im X-Bereich der Spalte befindet
                         if (arrowTipX >= columnMinX && arrowTipX <= columnMaxX) {
                             for (let j = 0; j < column.length; j++) {
                                 const obs = column[j];
@@ -1334,131 +1448,135 @@
                                     const obsTop = obs.y;
                                     const obsBottom = obs.y + obs.height;
 
+                                    // AABB-Kollisionsprüfung (Bounding Box)
                                     if (arrowTipX + collisionRadius > obsLeft &&
                                         arrowTipX - collisionRadius < obsRight &&
                                         arrowTipY + collisionRadius > obsTop &&
                                         arrowTipY - collisionRadius < obsBottom) {
                                         collisionDetected = true;
                                         hitObstacle = obs;
-                                        break; 
+                                        break; // Kollision gefunden, innere Schleife beenden
                                     }
                                 }
                             }
                         }
-                        if (collisionDetected) break; 
+                        if (collisionDetected) break; // Kollision gefunden, äußere Schleife beenden
                     }
 
+                    // Wenn eine Kollision mit einem Hindernis erkannt wurde
                     if (collisionDetected) {
-                        arrow.stuck = true;
-                        arrow.stuckObstacle = hitObstacle;
-                        arrow.speedX = 0;
+                        arrow.stuck = true; // Pfeil steckt fest
+                        arrow.stuckObstacle = hitObstacle; // Referenz zum getroffenen Hindernis
+                        arrow.speedX = 0; // Geschwindigkeit auf 0 setzen
                         arrow.speedY = 0;
-                        arrow.spawnTime = Date.now();
-                        arrow.stuckX = arrow.x; 
-                        arrow.stuckY = arrow.y; 
-                        arrow.stuckObstacleInitialY = hitObstacle.y; 
-                        arrow.stuckAngle = Math.atan2(arrow.speedY, arrow.speedX); 
+                        arrow.spawnTime = Date.now(); // Zeitstempel für die Steck-Dauer
+                        arrow.stuckX = arrow.x; // Position beim Steckenbleiben speichern
+                        arrow.stuckY = arrow.y;
+                        arrow.stuckObstacleInitialY = hitObstacle.y; // Ausgangs-Y-Position des Hindernisses
+                        arrow.stuckAngle = Math.atan2(arrow.speedY, arrow.speedX); // Winkel beim Steckenbleiben
 
-                        hitObstacle.hitEffectTime = Date.now();
-                        playSound(obstacleHitSound);
-                        streak = 0; // Reset streak on obstacle hit
+                        hitObstacle.hitEffectTime = Date.now(); // Treffer-Effekt-Zeitstempel setzen
+                        hitObstacle.hitColorOpacity = 1; // Startet den einfachen Treffer-Effekt
+
+                        playSound(obstacleHitSound); // Sound abspielen
+                        streak = 0; // Serie zurücksetzen bei Hindernistreffer
                         updateUI();
-                        saveGameData(); // Save data after streak reset
+                        saveGameData(); // Daten nach Serien-Reset speichern
 
-                        // If this was the last arrow and it hit an obstacle, trigger game over immediately
+                        // Wenn dies der letzte Pfeil war und er ein Hindernis traf, sofort Game Over auslösen
                         if (lastArrowFired && activeArrows.length === 0) {
                             setGameState(GAME_STATES.GAME_OVER);
                         }
                     }
                 }
 
+                // Kollisionserkennung mit dem Ziel
                 const dist = Math.sqrt(Math.pow(arrow.x - target.x, 2) + Math.pow(arrow.y - target.y, 2));
                 if (dist < target.radius) {
-                    target.hitWaveRadius = 0; // Reset for new wave
-                    target.hitWaveOpacity = 1; // Start opaque
-                    
-                    // Activate game area glow
+                    // Spielbereich-Glühen aktivieren
                     gameAreaHitEffectOpacity = 1;
                     gameAreaHitEffectTime = Date.now();
 
-                    returnArrowToPool(arrow); 
-                    activeArrows.splice(i, 1); 
-                    playSound(targetHitSound);
-                    
-                    streak++;
-                    targetsHitInRound++;
-                    const pointsGained = GAME_CONSTANTS.POINT_PER_STREAK_MULTIPLIER * streak;
-                    totalPoints += pointsGained;
-                    roundPoints += pointsGained;
+                    returnArrowToPool(arrow); // Pfeil in den Pool zurückgeben
+                    activeArrows.splice(i, 1); // Pfeil aus dem aktiven Array entfernen
+                    playSound(targetHitSound); // Sound abspielen
 
-                    // Update highscore if current round points are higher
+                    streak++; // Serie erhöhen
+                    targetsHitInRound++; // Anzahl der getroffenen Ziele erhöhen
+                    const pointsGained = GAME_CONSTANTS.POINT_PER_STREAK_MULTIPLIER * streak; // Punkte berechnen
+                    totalPoints += pointsGained; // Gesamtpunkte erhöhen
+                    roundPoints += pointsGained; // Rundenpunkte erhöhen
+
+                    // Highscore aktualisieren, wenn aktuelle Rundenpunkte höher sind
                     if (roundPoints > highScore) {
                         highScore = roundPoints;
                     }
 
-                    const popup = getScorePopupFromPool(); 
+                    // Score-Popup erstellen und aktivieren
+                    const popup = getScorePopupFromPool();
                     popup.x = target.x;
                     popup.y = target.y;
                     popup.text = `+${pointsGained}`;
                     popup.opacity = 1;
-                    popup.life = 60;
-                    popup.scale = 1;
+                    popup.life = 30; // Noch kürzere Lebensdauer für Popups
+                    popup.scale = 1; // Feste Skalierung
                     activeScorePopups.push(popup);
 
-                    for (let p = 0; p < 20; p++) { 
+                    // Partikel für Zieltreffer erzeugen (Anzahl DRastisch reduziert)
+                    for (let p = 0; p < 5; p++) { // Von 10 auf 5 Partikel reduziert
                         const angle = Math.random() * Math.PI * 2;
-                        const speed = (Math.random() * 2 + 0.5); // Slower particles
-                        const particle = getParticleFromPool(); 
+                        const speed = (Math.random() * 1 + 0.2); // Langsamere Partikel, weniger Speed
+                        const particle = getParticleFromPool();
                         particle.x = target.x;
                         particle.y = target.y;
-                        particle.radius = Math.random() * 2 + 1;
-                        particle.color = `rgba(0, 255, 255, ${Math.random() * 0.8 + 0.2})`;
+                        particle.radius = 1; // Fester, kleiner Partikel-Radius
+                        particle.color = `rgba(0, 255, 255, 0.5)`; // Feste, mittlere Deckkraft
                         particle.speedX = Math.cos(angle) * speed;
                         particle.speedY = Math.sin(angle) * speed;
                         particle.opacity = 1;
                         activeTargetHitParticles.push(particle);
                     }
 
-                    updateUI();
-                    saveGameData(); // Save data after points/highscore update
+                    updateUI(); // UI aktualisieren
+                    saveGameData(); // Daten nach Punkte-/Highscore-Update speichern
 
-                    // Spawn new target after delay
+                    // Neues Ziel nach einer Verzögerung spawnen
                     setTimeout(() => {
-                        setRandomTargetY(); // This sets target.spawnAnimationProgress = 0
+                        setRandomTargetY(); // Setzt target.spawnAnimationProgress = 0
                     }, GAME_CONSTANTS.NEW_TARGET_SPAWN_DELAY_MS);
 
-                    // If this was the last arrow and it hit the target, trigger game over immediately
+                    // Wenn dies der letzte Pfeil war und er das Ziel traf, sofort Game Over auslösen
                     if (lastArrowFired && activeArrows.length === 0) {
                         setGameState(GAME_STATES.GAME_OVER);
                     }
                 }
 
-                // Arrow leaves screen
-                if (!arrow.stuck && (arrow.x > canvas.width / dpr + arrow.width || arrow.x < -arrow.width || arrow.y > canvas.height / dpr + arrow.height || arrow.y < -arrow.height)) { 
-                    returnArrowToPool(arrow); 
-                    activeArrows.splice(i, 1); 
-                    streak = 0; // Reset streak on miss
+                // Pfeil verlässt den Bildschirm oder despawnt nach Zeit
+                if (!arrow.stuck && (arrow.x > canvas.width / dpr + arrow.width || arrow.x < -arrow.width || arrow.y > canvas.height / dpr + arrow.height || arrow.y < -arrow.height)) {
+                    returnArrowToPool(arrow); // Pfeil in den Pool zurückgeben
+                    activeArrows.splice(i, 1); // Pfeil aus dem aktiven Array entfernen
+                    streak = 0; // Serie zurücksetzen bei Fehlschuss
                     updateUI();
-                    saveGameData(); // Save data after streak reset
+                    saveGameData(); // Daten nach Serien-Reset speichern
 
-                    // If this was the last arrow and it went off-screen, trigger game over after delay
+                    // Wenn dies der letzte Pfeil war und er den Bildschirm verließ, Game Over nach Verzögerung auslösen
                     if (lastArrowFired && activeArrows.length === 0) {
-                        if (gameEndTimeoutId) clearTimeout(gameEndTimeoutId); // Clear any existing timeout
+                        if (gameEndTimeoutId) clearTimeout(gameEndTimeoutId); // Bestehenden Timeout löschen
                         gameEndTimeoutId = setTimeout(() => {
                             setGameState(GAME_STATES.GAME_OVER);
                         }, GAME_CONSTANTS.LAST_ARROW_MISS_GAMEOVER_DELAY_MS);
                     }
                 } else if (!arrow.stuck && (Date.now() - arrow.spawnTime) > GAME_CONSTANTS.ARROW_DESPAWN_TIME_MS) {
-                     // Arrow despawns after a set time if it hasn't hit anything
-                     returnArrowToPool(arrow); 
-                     activeArrows.splice(i, 1); 
-                     streak = 0; // Reset streak if arrow despawns
+                     // Pfeil despawnt nach einer festgelegten Zeit, wenn er nichts getroffen hat
+                     returnArrowToPool(arrow);
+                     activeArrows.splice(i, 1);
+                     streak = 0; // Serie zurücksetzen, wenn Pfeil despawnt
                      updateUI();
-                     saveGameData(); // Save data after streak reset
+                     saveGameData(); // Daten nach Serien-Reset speichern
 
-                     // If this was the last arrow and it despawned, trigger game over after delay
+                     // Wenn dies der letzte Pfeil war und er despawnt ist, Game Over nach Verzögerung auslösen
                      if (lastArrowFired && activeArrows.length === 0) {
-                        if (gameEndTimeoutId) clearTimeout(gameEndTimeoutId); // Clear any existing timeout
+                        if (gameEndTimeoutId) clearTimeout(gameEndTimeoutId); // Bestehenden Timeout löschen
                         gameEndTimeoutId = setTimeout(() => {
                             setGameState(GAME_STATES.GAME_OVER);
                         }, GAME_CONSTANTS.LAST_ARROW_MISS_GAMEOVER_DELAY_MS);
@@ -1466,80 +1584,84 @@
                 }
             }
 
+            // Aktualisiert die Partikel des Zieltreffers
             for (let i = activeTargetHitParticles.length - 1; i >= 0; i--) {
                 const p = activeTargetHitParticles[i];
-                if (!p.active) continue; 
+                if (!p.active) continue;
 
                 p.x += p.speedX;
                 p.y += p.speedY;
-                p.opacity -= 0.015; // Slower fade
+                p.opacity -= 0.035; // Noch schnelleres Verblassen
                 if (p.opacity <= 0) {
-                    returnParticleToPool(p); 
-                    activeTargetHitParticles.splice(i, 1); 
+                    returnParticleToPool(p); // Partikel in den Pool zurückgeben
+                    activeTargetHitParticles.splice(i, 1); // Partikel aus dem aktiven Array entfernen
                 }
             }
 
+            // Aktualisiert die Score-Popups
             for (let i = activeScorePopups.length - 1; i >= 0; i--) {
                 const popup = activeScorePopups[i];
                 if (!popup.active) continue;
 
-                popup.y -= 1;
-                popup.opacity -= 1 / popup.life;
-                popup.scale += 0.01;
+                popup.y -= 0.6; // Popup noch langsamer nach oben bewegen
+                popup.opacity -= 1 / popup.life; // Deckkraft reduzieren
                 if (popup.opacity <= 0) {
-                    returnScorePopupToPool(popup); 
-                    activeScorePopups.splice(i, 1); 
+                    returnScorePopupToPool(popup); // Popup in den Pool zurückgeben
+                    activeScorePopups.splice(i, 1); // Popup aus dem aktiven Array entfernen
                 }
             }
 
-            draw();
-            animationFrameId = requestAnimationFrame(update);
+            draw(); // Alle Elemente neu zeichnen
+            animationFrameId = requestAnimationFrame(update); // Nächsten Frame anfordern
         }
 
-        function checkCollisionPoint(pointX, pointY, radius, targetObj) {
-            const dist = Math.sqrt(Math.pow(pointX - targetObj.x, 2) + Math.pow(pointY - targetObj.y, 2));
-            return dist < targetObj.radius;
-        }
-
+        /**
+         * Aktualisiert die Anzeige der UI-Elemente.
+         */
         function updateUI() {
-            if (arrowCountDisplay) arrowCountDisplay.textContent = `Arrows: ${currentArrows}`; 
-            if (pointsDisplay) pointsDisplay.textContent = `Points: ${roundPoints}`; 
-            if (highScoreDisplay) highScoreDisplay.textContent = `HIGHSCORE: ${highScore}`; 
+            if (arrowCountDisplay) arrowCountDisplay.textContent = `Arrows: ${currentArrows}`;
+            if (pointsDisplay) pointsDisplay.textContent = `Points: ${roundPoints}`;
+            if (highScoreDisplay) highScoreDisplay.textContent = `HIGHSCORE: ${highScore}`;
 
-            if (startScreenPoints) startScreenPoints.textContent = totalPoints; 
-            
+            if (startScreenPoints) startScreenPoints.textContent = totalPoints;
+
             if (arrowsUpgradeLevelDisplay) arrowsUpgradeLevelDisplay.textContent = arrowsUpgradeLevel;
             if (speedUpgradeLevelDisplay) speedUpgradeLevelDisplay.textContent = speedUpgradeLevel;
             if (indicatorUpgradeLevelDisplay) indicatorUpgradeLevelDisplay.textContent = indicatorUpgradeLevel;
 
+            // Aktualisiert die Upgrade-Informationen und Kosten
             if (arrowsUpgradeInfo) {
-                arrowsUpgradeInfo.innerHTML = `<strong>Expand Arrow Supply (Level <span id="arrowsUpgradeLevelDisplay">${arrowsUpgradeLevel}</span>)</strong><br><span>Increases your starting arrow count by 5 per level.</span>`; 
+                arrowsUpgradeInfo.innerHTML = `<strong>Expand Arrow Supply (Level <span id="arrowsUpgradeLevelDisplay">${arrowsUpgradeLevel}</span>)</strong><br><span>Increases your starting arrow count by 5 per level.</span>`;
             }
             if (arrowsUpgradeCostDisplay) arrowsUpgradeCostDisplay.textContent = calculateCost(GAME_CONSTANTS.BASE_ARROW_COST, arrowsUpgradeLevel) + 'P';
             if (buyArrowsUpgradeButton) buyArrowsUpgradeButton.disabled = totalPoints < calculateCost(GAME_CONSTANTS.BASE_ARROW_COST, arrowsUpgradeLevel);
 
             if (speedUpgradeInfo) {
-                speedUpgradeInfo.innerHTML = `<strong>Obstacle Slowdown (Level <span id="speedUpgradeLevelDisplay">${speedUpgradeLevel}</span>)</strong><br><span>Decreases obstacle speed by 1% per level.</span>`; 
+                speedUpgradeInfo.innerHTML = `<strong>Obstacle Slowdown (Level <span id="speedUpgradeLevelDisplay">${speedUpgradeLevel}</span>)</strong><br><span>Decreases obstacle speed by 1% per level.</span>`;
             }
             if (speedUpgradeCostDisplay) speedUpgradeCostDisplay.textContent = calculateCost(GAME_CONSTANTS.BASE_SPEED_COST, speedUpgradeLevel) + 'P';
             if (buySpeedUpgradeButton) buySpeedUpgradeButton.disabled = totalPoints < calculateCost(GAME_CONSTANTS.BASE_SPEED_COST, speedUpgradeLevel);
 
             if (indicatorUpgradeInfo) {
-                indicatorUpgradeInfo.innerHTML = `<strong>Extend Aim Assist (Level <span id="indicatorUpgradeLevelDisplay">${indicatorUpgradeLevel}</span>)</strong><br><span>Extends your shot indicator range to ${getAimIndicatorLengthPercentage()}% of screen width.</span>`; 
+                indicatorUpgradeInfo.innerHTML = `<strong>Extend Aim Assist (Level <span id="indicatorUpgradeLevelDisplay">${indicatorUpgradeLevel}</span>)</strong><br><span>Extends your shot indicator range to ${getAimIndicatorLengthPercentage()}% of screen width.</span>`;
             }
             if (indicatorUpgradeCostDisplay) indicatorUpgradeCostDisplay.textContent = calculateCost(GAME_CONSTANTS.BASE_INDICATOR_COST, indicatorUpgradeLevel) + 'P';
             if (buyIndicatorUpgradeButton) buyIndicatorUpgradeButton.disabled = totalPoints < calculateCost(GAME_CONSTANTS.BASE_INDICATOR_COST, indicatorUpgradeLevel);
         }
 
+        /**
+         * Setzt den aktuellen Spielzustand und steuert die Anzeige der Bildschirme.
+         * @param {string} newState - Der neue Spielzustand (aus GAME_STATES).
+         */
         function setGameState(newState) {
-            // Hide all screens initially for clean transitions
+            // Alle Bildschirme initial ausblenden für saubere Übergänge
             startScreen.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
             canvas.style.display = 'none';
             document.querySelector('.game-ui').style.display = 'none';
-            document.querySelector('.button-container').style.display = 'none'; // Ensure game buttons are hidden
+            document.querySelector('.button-container').style.display = 'none'; // Sicherstellen, dass Spiel-Buttons ausgeblendet sind
 
-            // Use a timeout to allow CSS transitions to play before changing display
+            // Eine kleine Verzögerung, um CSS-Übergänge zu ermöglichen, bevor die Anzeige geändert wird
             setTimeout(() => {
                 currentGameState = newState;
                 if (newState === GAME_STATES.START_SCREEN) {
@@ -1553,52 +1675,75 @@
                 } else if (newState === GAME_STATES.GAME_OVER) {
                     gameOverScreen.classList.remove('hidden');
                     if (roundPointsDisplay) roundPointsDisplay.textContent = roundPoints;
-                    if (highestScoreDisplay) highestScoreDisplay.textContent = highScore; 
+                    if (highestScoreDisplay) highestScoreDisplay.textContent = highScore;
                     if (totalPointsGameOverDisplay) totalPointsGameOverDisplay.textContent = totalPoints;
                     stopBackgroundMusic();
-                    saveGameData(); // Save data when game is over
+                    saveGameData(); // Daten speichern, wenn das Spiel vorbei ist
                 }
-            }, 50); // Small delay to allow opacity transition to start
+            }, 30); // Kurze Verzögerung für den Start des Opazitätsübergangs (noch weiter reduziert)
         }
 
-        // --- Local Storage Functions ---
+        // --- Lokale Speicherfunktionen ---
+        /**
+         * Speichert die Spieldaten im lokalen Speicher des Browsers.
+         * Dies gewährleistet, dass Punkte und Upgrades auch nach dem Schließen des Tabs erhalten bleiben.
+         */
         function saveGameData() {
             const gameData = {
                 totalPoints: totalPoints,
-                highScore: highScore, 
+                highScore: highScore,
                 arrowsUpgradeLevel: arrowsUpgradeLevel,
                 speedUpgradeLevel: speedUpgradeLevel,
                 indicatorUpgradeLevel: indicatorUpgradeLevel
             };
-            localStorage.setItem('neonArcherGameData', JSON.stringify(gameData));
-            console.log("Game data saved:", gameData);
-        }
-
-        function loadGameData() {
-            const savedData = localStorage.getItem('neonArcherGameData');
-            if (savedData) {
-                const gameData = JSON.parse(savedData);
-                totalPoints = gameData.totalPoints || 0;
-                highScore = gameData.highScore || 0; 
-                arrowsUpgradeLevel = gameData.arrowsUpgradeLevel || 0;
-                speedUpgradeLevel = gameData.speedUpgradeLevel || 0;
-                indicatorUpgradeLevel = gameData.indicatorUpgradeLevel || 0;
-                console.log("Game data loaded:", gameData);
-            } else {
-                console.log("No saved game data found.");
+            try {
+                localStorage.setItem('neonArcherGameData', JSON.stringify(gameData));
+                console.log("[DEBUG] Game data saved:", gameData);
+            } catch (e) {
+                console.error("[ERROR] Could not save game data to localStorage:", e);
             }
-            updateUI(); // Update UI after loading
         }
 
-        // --- Event Listeners ---
-        window.onload = function() { 
+        /**
+         * Lädt die Spieldaten aus dem lokalen Speicher.
+         * Wenn keine Daten gefunden werden, werden die Standardwerte verwendet.
+         */
+        function loadGameData() {
+            try {
+                const savedData = localStorage.getItem('neonArcherGameData');
+                if (savedData) {
+                    const gameData = JSON.parse(savedData);
+                    totalPoints = gameData.totalPoints || 0;
+                    highScore = gameData.highScore || 0;
+                    arrowsUpgradeLevel = gameData.arrowsUpgradeLevel || 0;
+                    speedUpgradeLevel = gameData.speedUpgradeLevel || 0;
+                    indicatorUpgradeLevel = gameData.indicatorUpgradeLevel || 0;
+                    console.log("[DEBUG] Game data loaded:", gameData);
+                } else {
+                    console.log("[DEBUG] No saved game data found.");
+                }
+            } catch (e) {
+                console.error("[ERROR] Could not load game data from localStorage:", e);
+                // Reset to default values if loading fails
+                totalPoints = 0;
+                highScore = 0;
+                arrowsUpgradeLevel = 0;
+                speedUpgradeLevel = 0;
+                indicatorUpgradeLevel = 0;
+            }
+            updateUI(); // UI nach dem Laden aktualisieren
+        }
+
+        // --- Event-Listener ---
+        window.onload = function() {
+            console.log("[DEBUG] Window loaded, starting application initialization.");
+            // DOM-Elemente abrufen und in Variablen speichern
             canvas = document.getElementById('gameCanvas');
             ctx = canvas.getContext('2d');
 
-            // Removed unused elements: startButton, resetButton, messageBox, messageText, messageBoxOk
             arrowCountDisplay = document.getElementById('arrowCountDisplay');
             pointsDisplay = document.getElementById('pointsDisplay');
-            highScoreDisplay = document.getElementById('highScoreDisplay'); 
+            highScoreDisplay = document.getElementById('highScoreDisplay');
 
             startScreen = document.getElementById('startScreen');
             startScreenPoints = document.getElementById('startScreenPoints');
@@ -1606,10 +1751,10 @@
 
             gameOverScreen = document.getElementById('gameOverScreen');
             roundPointsDisplay = document.getElementById('roundPointsDisplay');
-            highestScoreDisplay = document.getElementById('highestScoreDisplay'); 
+            highestScoreDisplay = document.getElementById('highestScoreDisplay');
             totalPointsGameOverDisplay = document.getElementById('totalPointsGameOverDisplay');
-            restartGameButton = document.getElementById('restartGameButton'); 
-            menuButton = document.getElementById('menuButton'); 
+            restartGameButton = document.getElementById('restartGameButton');
+            menuButton = document.getElementById('menuButton');
 
             buyArrowsUpgradeButton = document.getElementById('buyArrowsUpgrade');
             arrowsUpgradeInfo = document.getElementById('arrowsUpgradeInfoContainer');
@@ -1633,6 +1778,7 @@
             backgroundMusic = document.getElementById('backgroundMusic');
             upgradeSound = document.getElementById('upgradeSound');
 
+            // Setzt die Audio-Quellen. Relative Pfade sind hier angenommen.
             const setAudioSources = () => {
                 if (bowDrawAudio) bowDrawAudio.src = './assets/audio/bowdraw.mp3';
                 if (arrowShootAudio) arrowShootAudio.src = './assets/audio/bowrelease.mp3';
@@ -1640,11 +1786,12 @@
                 if (targetHitAudio) targetHitAudio.src = './assets/audio/wow.mp3';
                 if (backgroundMusic) backgroundMusic.src = './assets/audio/gamemusic.mp3';
                 if (upgradeSound) upgradeSound.src = './assets/audio/upgrade.mp3';
-                console.log('HTML: Audio sources set from relative paths.');
+                console.log('[DEBUG] Audio sources set from relative paths.');
             };
 
             setAudioSources();
-            
+
+            // Setzt die Lautstärke für alle Audio-Elemente
             if (bowDrawAudio) bowDrawAudio.volume = DEFAULT_SOUND_VOLUME;
             if (arrowShootAudio) arrowShootAudio.volume = DEFAULT_SOUND_VOLUME;
             if (obstacleHitAudio) obstacleHitAudio.volume = DEFAULT_SOUND_VOLUME;
@@ -1652,27 +1799,31 @@
             if (backgroundMusic) backgroundMusic.volume = DEFAULT_SOUND_VOLUME;
             if (upgradeSound) upgradeSound.volume = DEFAULT_SOUND_VOLUME;
 
+            // Event-Listener für Maus-Interaktionen auf dem Canvas
             canvas.addEventListener('mousedown', (e) => {
                 if (currentGameState === GAME_STATES.GAME_PLAYING && !isCharging && !arrowSpawnCooldown && !isBowstringSnappingBack) {
                     isCharging = true;
                     chargePower = 0;
-                    
-                    aimAnimationStartTime = Date.now(); // Start time for aiming animation
-                    startDisplayBowAngle = displayBowAngle; // Current visual angle of the bow
+
+                    aimAnimationStartTime = Date.now(); // Startzeit für die Ziel-Animation
+                    startDisplayBowAngle = displayBowAngle; // Aktueller visueller Winkel des Bogens
 
                     const rect = canvas.getBoundingClientRect();
-                    const mouseX = (e.clientX - rect.left) * (window.devicePixelRatio || 1); 
-                    const mouseY = (e.clientY - rect.top) * (window.devicePixelRatio || 1); 
-                    
-                    const deltaX = mouseX - (bow.x * (window.devicePixelRatio || 1) + 5); 
+                    // Mauskoordinaten an das Geräte-Pixel-Verhältnis anpassen
+                    const mouseX = (e.clientX - rect.left) * (window.devicePixelRatio || 1);
+                    const mouseY = (e.clientY - rect.top) * (window.devicePixelRatio || 1);
+
+                    // Delta-Berechnung für den Zielwinkel
+                    const deltaX = mouseX - (bow.x * (window.devicePixelRatio || 1) + 5);
                     const deltaY = mouseY - (bow.y * (window.devicePixelRatio || 1));
-                    
-                    // This is the actual angle the arrow will be shot at, and the target for the bow animation
+
+                    // Der tatsächliche Winkel, mit dem der Pfeil geschossen wird, und das Ziel für die Bogen-Animation
                     currentChargingArrow.aimAngle = Math.atan2(deltaY, deltaX);
+                    // Winkel auf den maximalen Zielwinkel begrenzen
                     currentChargingArrow.aimAngle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, currentChargingArrow.aimAngle));
-                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // The target angle for the bow's visual animation
-                    
-                    playSound(bowDrawAudio);
+                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Der Zielwinkel für die visuelle Animation des Bogens
+
+                    playSound(bowDrawAudio); // Sound abspielen
                 }
             });
 
@@ -1681,176 +1832,181 @@
                     isCharging = false;
                     if (currentArrows > 0) {
                         currentArrows--;
-                        if (currentArrows === 0) { // Check if this is the last arrow being fired
+                        if (currentArrows === 0) { // Prüfen, ob dies der letzte abgefeuerte Pfeil ist
                             lastArrowFired = true;
                         }
 
+                        // Berechnet die Gesamtgeschwindigkeit des Pfeils basierend auf der Ladeleistung
                         const totalSpeed = (GAME_CONSTANTS.MIN_ARROW_SPEED + (chargePower / GAME_CONSTANTS.MAX_CHARGE) * (GAME_CONSTANTS.MAX_ARROW_SPEED - GAME_CONSTANTS.MIN_ARROW_SPEED)) * 1.2;
-                        
-                        const newArrow = getArrowFromPool(); 
+
+                        // Holt einen Pfeil aus dem Pool und weist ihm Eigenschaften zu
+                        const newArrow = getArrowFromPool();
                         Object.assign(newArrow, {
                             x: currentChargingArrow.x,
                             y: currentChargingArrow.y,
                             width: currentChargingArrow.width,
                             height: currentChargingArrow.height,
                             speed: totalSpeed,
-                            speedX: totalSpeed * Math.cos(currentChargingArrow.aimAngle), 
-                            speedY: totalSpeed * Math.sin(currentChargingArrow.aimAngle), 
-                            color: currentChargingArrow.color, // Retain color from charging
+                            speedX: totalSpeed * Math.cos(currentChargingArrow.aimAngle),
+                            speedY: totalSpeed * Math.sin(currentChargingArrow.aimAngle),
+                            color: currentChargingArrow.color, // Farbe vom Lade-Pfeil beibehalten
                             stuck: false,
                             stuckObstacle: null,
                             spawnTime: Date.now(),
                             stuckInitialY: 0,
                             stuckObstacleInitialY: 0,
-                            aimAngle: currentChargingArrow.aimAngle, 
+                            aimAngle: currentChargingArrow.aimAngle,
                             stuckX: 0, stuckY: 0, stuckAngle: 0,
                             active: true
                         });
-                        activeArrows.push(newArrow); 
-                        
-                        // Start bowstring animation
-                        initialChargePowerAtRelease = chargePower; 
-                        initialAimAngleAtRelease = currentChargingArrow.aimAngle; // Store angle at release
+                        activeArrows.push(newArrow); // Neuen Pfeil zum Array der aktiven Pfeile hinzufügen
+
+                        // Startet die Bogensehnen-Animation
+                        initialChargePowerAtRelease = chargePower;
+                        initialAimAngleAtRelease = currentChargingArrow.aimAngle; // Winkel beim Abschuss speichern
                         snapbackAnimationStartTime = Date.now();
                         isBowstringSnappingBack = true;
 
-                        // Start cooldown
+                        // Startet den Cooldown für das Spawnen neuer Pfeile
                         arrowSpawnCooldown = true;
                         cooldownTimeoutId = setTimeout(() => {
-                            resetCurrentChargingArrow(); // Resets arrow and ends cooldown
+                            resetCurrentChargingArrow(); // Setzt Pfeil zurück und beendet Cooldown
                         }, GAME_CONSTANTS.ARROW_SPAWN_DELAY_MS);
 
-                        playSound(arrowShootAudio);
-                        updateUI();
-                        saveGameData();
+                        playSound(arrowShootAudio); // Sound abspielen
+                        updateUI(); // UI aktualisieren
+                        saveGameData(); // Spieldaten speichern
 
-                        // Game over logic moved to arrow update loop to check last arrow's fate
+                        // Game-Over-Logik wird im Pfeil-Update-Loop geprüft, um das Schicksal des letzten Pfeils zu überprüfen
                     } else {
-                        // If no arrows left to fire, immediately go to game over
+                        // Wenn keine Pfeile mehr übrig sind, sofort Game Over
                         setGameState(GAME_STATES.GAME_OVER);
                     }
                 }
             });
 
             canvas.addEventListener('mousemove', (e) => {
-                // Aim angle can be changed by mouse movement while charging
+                // Zielwinkel kann durch Mausbewegung während des Ladens geändert werden
                 if (currentGameState === GAME_STATES.GAME_PLAYING && isCharging && !arrowSpawnCooldown && !isBowstringSnappingBack) {
                     const rect = canvas.getBoundingClientRect();
-                    const mouseX = (e.clientX - rect.left) * (window.devicePixelRatio || 1); 
-                    const mouseY = (e.clientY - rect.top) * (window.devicePixelRatio || 1); 
-                    
-                    const deltaX = mouseX - (bow.x * (window.devicePixelRatio || 1) + 5); 
+                    const mouseX = (e.clientX - rect.left) * (window.devicePixelRatio || 1);
+                    const mouseY = (e.clientY - rect.top) * (window.devicePixelRatio || 1);
+
+                    const deltaX = mouseX - (bow.x * (window.devicePixelRatio || 1) + 5);
                     const deltaY = mouseY - (bow.y * (window.devicePixelRatio || 1));
                     let angle = Math.atan2(deltaY, deltaX);
 
                     angle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, angle));
                     currentChargingArrow.aimAngle = angle;
-                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Update target for smooth aim
+                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Ziel für sanftes Zielen aktualisieren
                 }
             });
 
+            // Event-Listener für Touch-Interaktionen auf dem Canvas (für mobile Geräte)
             canvas.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+                e.preventDefault(); // Standard-Touch-Aktionen verhindern
                 if (currentGameState === GAME_STATES.GAME_PLAYING && !isCharging && !arrowSpawnCooldown && !isBowstringSnappingBack) {
                     isCharging = true;
                     chargePower = 0;
-                    
-                    aimAnimationStartTime = Date.now(); // Start time for aiming animation
-                    startDisplayBowAngle = displayBowAngle; // Current visual angle of the bow
+
+                    aimAnimationStartTime = Date.now(); // Startzeit für die Ziel-Animation
+                    startDisplayBowAngle = displayBowAngle; // Aktueller visueller Winkel des Bogens
 
                     const rect = canvas.getBoundingClientRect();
-                    const touchX = (e.touches[0].clientX - rect.left) * (window.devicePixelRatio || 1); 
-                    const touchY = (e.touches[0].clientY - rect.top) * (window.devicePixelRatio || 1); 
-                    
-                    const deltaX = touchX - (bow.x * (window.devicePixelRatio || 1) + 5); 
+                    // Touch-Koordinaten an das Geräte-Pixel-Verhältnis anpassen
+                    const touchX = (e.touches[0].clientX - rect.left) * (window.devicePixelRatio || 1);
+                    const touchY = (e.touches[0].clientY - rect.top) * (window.devicePixelRatio || 1);
+
+                    const deltaX = touchX - (bow.x * (window.devicePixelRatio || 1) + 5);
                     const deltaY = touchY - (bow.y * (window.devicePixelRatio || 1));
                     let angle = Math.atan2(deltaY, deltaX);
                     angle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, angle));
-                    currentChargingArrow.aimAngle = angle; 
-                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Update target for smooth aim
-                    
-                    playSound(bowDrawAudio);
+                    currentChargingArrow.aimAngle = angle;
+                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Ziel für sanftes Zielen aktualisieren
+
+                    playSound(bowDrawAudio); // Sound abspielen
                 }
             });
 
             canvas.addEventListener('touchend', (e) => {
-                e.preventDefault();
+                e.preventDefault(); // Standard-Touch-Aktionen verhindern
                 if (currentGameState === GAME_STATES.GAME_PLAYING && isCharging) {
                     isCharging = false;
                     if (currentArrows > 0) {
                         currentArrows--;
-                        if (currentArrows === 0) { // Check if this is the last arrow being fired
+                        if (currentArrows === 0) { // Prüfen, ob dies der letzte abgefeuerte Pfeil ist
                             lastArrowFired = true;
                         }
 
                         const totalSpeed = (GAME_CONSTANTS.MIN_ARROW_SPEED + (chargePower / GAME_CONSTANTS.MAX_CHARGE) * (GAME_CONSTANTS.MAX_ARROW_SPEED - GAME_CONSTANTS.MIN_ARROW_SPEED)) * 1.2;
-                        
-                        const newArrow = getArrowFromPool(); 
+
+                        const newArrow = getArrowFromPool();
                         Object.assign(newArrow, {
                             x: currentChargingArrow.x,
                             y: currentChargingArrow.y,
                             width: currentChargingArrow.width,
                             height: currentChargingArrow.height,
                             speed: totalSpeed,
-                            speedX: totalSpeed * Math.cos(currentChargingArrow.aimAngle), 
-                            speedY: totalSpeed * Math.sin(currentChargingArrow.aimAngle), 
-                            color: currentChargingArrow.color, // Retain color from charging
+                            speedX: totalSpeed * Math.cos(currentChargingArrow.aimAngle),
+                            speedY: totalSpeed * Math.sin(currentChargingArrow.aimAngle),
+                            color: currentChargingArrow.color, // Farbe vom Lade-Pfeil beibehalten
                             stuck: false,
                             stuckObstacle: null,
                             spawnTime: Date.now(),
                             stuckInitialY: 0,
                             stuckObstacleInitialY: 0,
-                            aimAngle: currentChargingArrow.aimAngle, 
+                            aimAngle: currentChargingArrow.aimAngle,
                             stuckX: 0, stuckY: 0, stuckAngle: 0,
                             active: true
                         });
-                        activeArrows.push(newArrow); 
+                        activeArrows.push(newArrow);
 
-                        // Start bowstring animation
-                        initialChargePowerAtRelease = chargePower; 
-                        initialAimAngleAtRelease = currentChargingArrow.aimAngle; // Store angle at release
+                        // Startet die Bogensehnen-Animation
+                        initialChargePowerAtRelease = chargePower;
+                        initialAimAngleAtRelease = currentChargingArrow.aimAngle; // Winkel beim Abschuss speichern
                         snapbackAnimationStartTime = Date.now();
                         isBowstringSnappingBack = true;
 
-                        // Start cooldown
+                        // Startet den Cooldown
                         arrowSpawnCooldown = true;
                         cooldownTimeoutId = setTimeout(() => {
-                            resetCurrentChargingArrow(); // Resets arrow and ends cooldown
+                            resetCurrentChargingArrow(); // Setzt Pfeil zurück und beendet Cooldown
                         }, GAME_CONSTANTS.ARROW_SPAWN_DELAY_MS);
 
-                        playSound(arrowShootAudio);
-                        updateUI();
-                        saveGameData();
+                        playSound(arrowShootAudio); // Sound abspielen
+                        updateUI(); // UI aktualisieren
+                        saveGameData(); // Spieldaten speichern
 
-                        // Game over logic moved to arrow update loop to check last arrow's fate
+                        // Game-Over-Logik wird im Pfeil-Update-Loop geprüft
                     } else {
-                        // If no arrows left to fire, immediately go to game over
+                        // Wenn keine Pfeile mehr übrig sind, sofort Game Over
                         setGameState(GAME_STATES.GAME_OVER);
                     }
                 }
             });
 
             canvas.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                // Aim angle can be changed by touch movement while charging
+                e.preventDefault(); // Standard-Touch-Aktionen verhindern
+                // Zielwinkel kann durch Touch-Bewegung während des Ladens geändert werden
                 if (currentGameState === GAME_STATES.GAME_PLAYING && isCharging && !arrowSpawnCooldown && !isBowstringSnappingBack) {
                     const rect = canvas.getBoundingClientRect();
-                    const touchX = (e.touches[0].clientX - rect.left) * (window.devicePixelRatio || 1); 
-                    const touchY = (e.touches[0].clientY - rect.top) * (window.devicePixelRatio || 1); 
-                    
-                    const deltaX = touchX - (bow.x * (window.devicePixelRatio || 1) + 5); 
+                    const touchX = (e.touches[0].clientX - rect.left) * (window.devicePixelRatio || 1);
+                    const touchY = (e.touches[0].clientY - rect.top) * (window.devicePixelRatio || 1);
+
+                    const deltaX = touchX - (bow.x * (window.devicePixelRatio || 1) + 5);
                     const deltaY = touchY - (bow.y * (window.devicePixelRatio || 1));
-                    
+
                     let angle = Math.atan2(deltaY, deltaX);
 
                     angle = Math.max(-GAME_CONSTANTS.MAX_AIM_ANGLE, Math.min(GAME_CONSTANTS.MAX_AIM_ANGLE, angle));
                     currentChargingArrow.aimAngle = angle;
-                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Update target for smooth aim
+                    targetDisplayBowAngle = currentChargingArrow.aimAngle; // Ziel für sanftes Zielen aktualisieren
                 }
             });
 
+            // Event-Listener für Buttons
             startPlayButton.addEventListener('click', () => {
-                startGameRound(); // Call the new streamlined function
+                startGameRound(); // Ruft die optimierte Funktion auf
             });
 
             buyArrowsUpgradeButton.addEventListener('click', () => {
@@ -1861,7 +2017,7 @@
                     updateUI();
                     playSound(upgradeSound);
                     saveGameData();
-                } 
+                }
             });
 
             buySpeedUpgradeButton.addEventListener('click', () => {
@@ -1871,9 +2027,9 @@
                     speedUpgradeLevel++;
                     updateUI();
                     playSound(upgradeSound);
-                    initializeObstacleColumns();
+                    initializeObstacleColumns(); // Hindernisse neu initialisieren, da sich die Geschwindigkeit geändert hat
                     saveGameData();
-                } 
+                }
             });
 
             buyIndicatorUpgradeButton.addEventListener('click', () => {
@@ -1884,22 +2040,23 @@
                     updateUI();
                     playSound(upgradeSound);
                     saveGameData();
-                } 
+                }
             });
 
-            // Game Over Screen Buttons
+            // Game Over Bildschirm-Buttons
             restartGameButton.addEventListener('click', () => {
-                startGameRound(); // Call the new streamlined function
+                startGameRound(); // Ruft die optimierte Funktion auf
             });
 
             menuButton.addEventListener('click', () => {
-                goToMenu(); // Call the new streamlined function
+                goToMenu(); // Ruft die optimierte Funktion auf
             });
 
+            // Event-Listener für die Größenänderung des Fensters
             window.addEventListener('resize', resizeCanvas);
 
-            initApplication(); // Start the application
-        }; // End of window.onload
+            initApplication(); // Startet die Anwendung
+        }; // Ende von window.onload
     </script>
 </body>
 </html>
