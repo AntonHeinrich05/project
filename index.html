@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏃 Team Challenge</title>
+
+    <!-- Firebase SDKs (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js">
+    </script>
+
     <style>
         :root {
             --bg: #f0f4f8;
@@ -30,7 +37,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: var(--font);
             background: var(--bg);
@@ -40,7 +46,6 @@
             display: flex;
             justify-content: center;
         }
-
         .app-container {
             max-width: 700px;
             width: 100%;
@@ -48,8 +53,6 @@
             flex-direction: column;
             gap: 18px;
         }
-
-        /* Header */
         .header {
             text-align: center;
             padding: 10px 0;
@@ -68,8 +71,23 @@
             color: var(--text-light);
             margin-top: 2px;
         }
-
-        /* Week Navigation */
+        .connection-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .connection-badge.online {
+            background: #e8f8ef;
+            color: #27ae60;
+        }
+        .connection-badge.offline {
+            background: #fdecea;
+            color: #e74c3c;
+        }
         .week-nav {
             display: flex;
             align-items: center;
@@ -149,8 +167,6 @@
             background: var(--primary-light) !important;
             color: var(--primary) !important;
         }
-
-        /* Settings Panel */
         .settings-panel {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -250,8 +266,6 @@
             padding: 0 2px;
             line-height: 1;
         }
-
-        /* Goals Card */
         .goals-card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -329,6 +343,7 @@
             display: flex;
             gap: 6px;
             align-items: center;
+            flex-wrap: wrap;
         }
         .goal-edit-inline input {
             width: 80px;
@@ -344,9 +359,10 @@
             border-radius: 12px;
             border: none;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             font-family: var(--font);
+            white-space: nowrap;
         }
         .goal-edit-inline .btn-reset {
             background: #fdecea;
@@ -356,8 +372,11 @@
             background: var(--accent);
             color: #fff;
         }
-
-        /* Participant Cards */
+        .goal-edit-inline .btn-apply-future {
+            background: #3b5998;
+            color: #fff;
+            font-size: 0.7rem;
+        }
         .participants-grid {
             display: flex;
             flex-direction: column;
@@ -502,8 +521,6 @@
             height: 14px;
             flex: 1;
         }
-
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -523,8 +540,6 @@
         .toast.show {
             opacity: 1;
         }
-
-        /* Responsive */
         @media (max-width: 500px) {
             .header h1 {
                 font-size: 1.5rem;
@@ -577,13 +592,13 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <div class="header">
             <h1><span>🏃‍♂️</span> Team Challenge</h1>
-            <p class="subtitle">Anton, Dean & Laurens – gemeinsam fitter werden</p>
+            <p class="subtitle">Anton, Dean & Laurens – gemeinsam fitter werden
+                <span class="connection-badge offline" id="connectionBadge">⚡ lokal</span>
+            </p>
         </div>
 
-        <!-- Week Navigation -->
         <div class="week-nav" id="weekNav">
             <button onclick="navigateWeek(-1)" title="Vorherige Woche">◀</button>
             <div class="week-display">
@@ -595,40 +610,52 @@
             <button class="btn-settings" onclick="toggleSettings()" title="Einstellungen">⚙️</button>
         </div>
 
-        <!-- Settings Panel -->
         <div class="settings-panel" id="settingsPanel">
             <label>📅 Startdatum der Challenge (Woche 1 beginnt an diesem Tag)</label>
             <div class="settings-row">
-                <input type="date" id="startDateInput" onchange="saveStartDate()">
+                <input type="date" id="startDateInput">
                 <button class="btn-sm btn-save" onclick="saveStartDate()">Speichern</button>
             </div>
             <label style="margin-top:6px;">➕ Zusätzliche Aktivitäten</label>
             <div class="custom-activities-list" id="customActivitiesList"></div>
             <div class="settings-row" style="gap:6px;">
-                <input type="text" id="newActName" placeholder="Name (z.B. Burpees)" style="padding:7px 10px;border:2px solid var(--border);border-radius:20px;font-family:var(--font);flex:1;min-width:120px;">
-                <input type="number" id="newActBase" placeholder="Basis-Wert W1" style="width:80px;padding:7px 8px;border:2px solid var(--border);border-radius:20px;font-family:var(--font);text-align:center;">
-                <input type="text" id="newActUnit" placeholder="Einheit" style="width:55px;padding:7px 4px;border:2px solid var(--border);border-radius:20px;font-family:var(--font);text-align:center;">
+                <input type="text" id="newActName" placeholder="Name (z.B. Burpees)"
+                style="padding:7px 10px;border:2px solid var(--border);border-radius:20px;font-family:var(--font);flex:1;min-width:120px;">
+                <input type="number" id="newActBase" placeholder="Basis-Wert W1"
+                style="width:80px;padding:7px 8px;border:2px solid var(--border);border-radius:20px;font-family:var(--font);text-align:center;">
+                <input type="text" id="newActUnit" placeholder="Einheit"
+                style="width:55px;padding:7px 4px;border:2px solid var(--border);border-radius:20px;font-family:var(--font);text-align:center;">
                 <button class="btn-sm btn-add-activity" onclick="addCustomActivity()">➕ Hinzufügen</button>
             </div>
         </div>
 
-        <!-- Weekly Goals -->
         <div class="goals-card" id="goalsCard">
             <h2><span class="icon">🎯</span> Wochenziel</h2>
             <div class="goals-list" id="goalsList"></div>
         </div>
 
-        <!-- Participants -->
         <div class="participants-grid" id="participantsGrid"></div>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
     <script>
         (function() {
+            // ╔══════════════════════════════════════════════════════════╗
+            // ║  FIREBASE-KONFIGURATION – HIER DEINE DATEN EINSETZEN  ║
+            // ╚══════════════════════════════════════════════════════════╝
+            const firebaseConfig = {
+                apiKey: "AIzaSyDEIN_EIGENER_API_KEY",
+                authDomain: "DEIN_PROJEKT.firebaseapp.com",
+                databaseURL: "https://DEIN_PROJEKT-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "DEIN_PROJEKT",
+                storageBucket: "DEIN_PROJEKT.appspot.com",
+                messagingSenderId: "123456789",
+                appId: "1:123456789:web:abc123def456"
+            };
+
             // ──────────────────────────────────────
-            // CONFIGURATION
+            // KONSTANTEN
             // ──────────────────────────────────────
             const DEFAULT_ACTIVITIES = [
                 { id: 'laufen', name: 'Laufen', unit: 'km', baseValue: 10, decimals: 1, icon: '🏃' },
@@ -637,18 +664,107 @@
                 { id: 'klimmzuege', name: 'Klimmzüge', unit: '', baseValue: 50, decimals: 0, icon: '🏋️' },
             ];
             const PARTICIPANTS = ['Anton', 'Dean', 'Laurens'];
-            const PARTICIPANT_COLORS = {
-                'Anton': '#3498db',
-                'Dean': '#e67e22',
-                'Laurens': '#9b59b6'
-            };
-            const STORAGE_KEY = 'teamChallengeData_v2';
+            const FIREBASE_PATH = '/teamChallenge';
+            const LOCAL_STORAGE_KEY = 'teamChallengeData_local_fallback';
 
             // ──────────────────────────────────────
             // STATE
             // ──────────────────────────────────────
             let currentWeek = 1;
-            let data = loadData();
+            let data = null;
+            let firebaseReady = false;
+            let db = null;
+            let fbRef = null;
+            let isUpdatingFromFirebase = false; // Verhindert Endlosschleifen
+
+            // ──────────────────────────────────────
+            // FIREBASE INIT
+            // ──────────────────────────────────────
+            function initFirebase() {
+                try {
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.database();
+                    fbRef = db.ref(FIREBASE_PATH);
+
+                    // Listener: Immer wenn sich Daten in Firebase ändern
+                    fbRef.on('value', (snapshot) => {
+                        isUpdatingFromFirebase = true;
+                        const fbData = snapshot.val();
+                        if (fbData && typeof fbData === 'object') {
+                            data = mergeWithDefaults(fbData);
+                        } else {
+                            // Keine Daten in Firebase – initialisiere mit Defaults
+                            data = getDefaultData();
+                            pushToFirebase(data);
+                        }
+                        // localStorage als Backup mitschreiben
+                        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+                        updateConnectionBadge(true);
+                        renderAll();
+                        isUpdatingFromFirebase = false;
+                    }, (error) => {
+                        console.warn('Firebase-Verbindung fehlgeschlagen, nutze localStorage:', error
+                            .message);
+                        updateConnectionBadge(false);
+                        loadFromLocalStorage();
+                        renderAll();
+                    });
+
+                    updateConnectionBadge(true);
+                } catch (e) {
+                    console.warn('Firebase nicht konfiguriert oder Fehler:', e.message);
+                    updateConnectionBadge(false);
+                    loadFromLocalStorage();
+                    renderAll();
+                }
+            }
+
+            function pushToFirebase(d) {
+                if (db && fbRef && !isUpdatingFromFirebase) {
+                    fbRef.set(d).catch(err => {
+                        console.warn('Firebase write error:', err.message);
+                        updateConnectionBadge(false);
+                    });
+                }
+            }
+
+            function updateToFirebase(partialPath, value) {
+                if (db && fbRef && !isUpdatingFromFirebase) {
+                    const updateObj = {};
+                    updateObj[partialPath] = value;
+                    fbRef.update(updateObj).catch(err => {
+                        console.warn('Firebase update error:', err.message);
+                        updateConnectionBadge(false);
+                    });
+                }
+                // Fallback: localStorage
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            }
+
+            function updateConnectionBadge(online) {
+                firebaseReady = online;
+                const badge = document.getElementById('connectionBadge');
+                if (online) {
+                    badge.textContent = '🟢 live';
+                    badge.className = 'connection-badge online';
+                } else {
+                    badge.textContent = '⚡ lokal';
+                    badge.className = 'connection-badge offline';
+                }
+            }
+
+            function loadFromLocalStorage() {
+                try {
+                    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (raw) {
+                        data = mergeWithDefaults(JSON.parse(raw));
+                    } else {
+                        data = getDefaultData();
+                    }
+                } catch (e) {
+                    data = getDefaultData();
+                }
+            }
 
             // ──────────────────────────────────────
             // DATA MANAGEMENT
@@ -661,47 +777,40 @@
                 return {
                     startDate: `${yyyy}-${mm}-${dd}`,
                     activities: JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES)),
-                    logs: {}, // { participantName: { weekNum: { activityId: value } } }
-                    customGoals: {}, // { weekNum: { activityId: value|null } }
+                    logs: {},
+                    customGoals: {},
+                    baseOverrides: {}, // { activityId: { week: number, value: number } }
                 };
             }
 
-            function loadData() {
-                try {
-                    const raw = localStorage.getItem(STORAGE_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        // Merge mit defaults, falls neue Aktivitäten dazugekommen sind
-                        const defaultActs = JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));
-                        const existingIds = new Set((parsed.activities || []).map(a => a.id));
-                        for (const da of defaultActs) {
-                            if (!existingIds.has(da.id)) {
-                                parsed.activities.push(da);
-                            }
-                        }
-                        parsed.logs = parsed.logs || {};
-                        parsed.customGoals = parsed.customGoals || {};
-                        return parsed;
+            function mergeWithDefaults(parsed) {
+                const defaultActs = JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));
+                const existingIds = new Set((parsed.activities || []).map(a => a.id));
+                for (const da of defaultActs) {
+                    if (!existingIds.has(da.id)) {
+                        if (!parsed.activities) parsed.activities = [];
+                        parsed.activities.push(da);
                     }
-                } catch (e) {
-                    console.warn('Fehler beim Laden der Daten:', e);
                 }
-                return getDefaultData();
+                parsed.logs = parsed.logs || {};
+                parsed.customGoals = parsed.customGoals || {};
+                parsed.baseOverrides = parsed.baseOverrides || {};
+                return parsed;
             }
 
-            function saveData() {
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                } catch (e) {
-                    showToast('⚠️ Fehler beim Speichern!');
-                }
+            function saveDataLocally() {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
             }
 
             function saveStartDate() {
                 const input = document.getElementById('startDateInput');
                 if (input.value) {
                     data.startDate = input.value;
-                    saveData();
+                    if (firebaseReady) {
+                        updateToFirebase('startDate', data.startDate);
+                    } else {
+                        saveDataLocally();
+                    }
                     currentWeek = calculateCurrentWeek();
                     renderAll();
                     showToast('✅ Startdatum gespeichert!');
@@ -725,7 +834,6 @@
                 weekStart.setDate(weekStart.getDate() + (weekNum - 1) * 7);
                 const weekEnd = new Date(weekStart);
                 weekEnd.setDate(weekEnd.getDate() + 6);
-                const opts = { day: '2-digit', month: '2-digit', year: 'numeric' };
                 return {
                     start: weekStart.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
                     end: weekEnd.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit',
@@ -734,19 +842,36 @@
             }
 
             // ──────────────────────────────────────
-            // GOAL CALCULATION
+            // GOAL CALCULATION (mit baseOverrides)
             // ──────────────────────────────────────
             function calculateGoal(activity, weekNum) {
-                const monthIndex = Math.floor((weekNum - 1) / 4); // 0-basiert
-                const weekInMonth = ((weekNum - 1) % 4) + 1; // 1-4
-                const monthlyBase = activity.baseValue * Math.pow(1.25, monthIndex);
+                // Prüfe, ob es einen baseOverride gibt, der vor oder in dieser Woche greift
+                let effectiveBaseValue = activity.baseValue;
+                let overrideWeek = 0;
+
+                const overrides = data.baseOverrides || {};
+                if (overrides[activity.id]) {
+                    const ov = overrides[activity.id];
+                    if (ov.week <= weekNum && ov.week > overrideWeek) {
+                        overrideWeek = ov.week;
+                        // Rückrechnung: In overrideWeek war das Ziel = ov.value
+                        // Monatsindex und Wochenindex für overrideWeek
+                        const ovMonthIndex = Math.floor((overrideWeek - 1) / 4);
+                        const ovWeekInMonth = ((overrideWeek - 1) % 4) + 1;
+                        const factor = 1 + 0.25 * (ovWeekInMonth - 1);
+                        effectiveBaseValue = ov.value / Math.pow(1.25, ovMonthIndex) / factor;
+                    }
+                }
+
+                const monthIndex = Math.floor((weekNum - 1) / 4);
+                const weekInMonth = ((weekNum - 1) % 4) + 1;
+                const monthlyBase = effectiveBaseValue * Math.pow(1.25, monthIndex);
                 const weeklyGoal = monthlyBase * (1 + 0.25 * (weekInMonth - 1));
                 const decimals = activity.decimals || 0;
                 return Math.round(weeklyGoal * Math.pow(10, decimals)) / Math.pow(10, decimals);
             }
 
             function getGoalForWeek(activityId, weekNum) {
-                // Prüfe benutzerdefiniertes Ziel
                 if (data.customGoals[weekNum] && data.customGoals[weekNum][activityId] !== undefined &&
                     data.customGoals[weekNum][activityId] !== null) {
                     return data.customGoals[weekNum][activityId];
@@ -764,21 +889,69 @@
             function setCustomGoal(activityId, weekNum, value) {
                 if (!data.customGoals[weekNum]) data.customGoals[weekNum] = {};
                 data.customGoals[weekNum][activityId] = value;
-                saveData();
+                persistData();
                 renderAll();
-                showToast('✏️ Ziel angepasst!');
             }
 
             function resetCustomGoal(activityId, weekNum) {
                 if (data.customGoals[weekNum]) {
                     data.customGoals[weekNum][activityId] = null;
-                    // Cleanup leere Einträge
                     const allNull = Object.values(data.customGoals[weekNum]).every(v => v === null);
                     if (allNull) delete data.customGoals[weekNum];
                 }
-                saveData();
+                persistData();
                 renderAll();
                 showToast('↺ Ziel zurückgesetzt!');
+            }
+
+            /**
+             * Wendet das manuelle Ziel auf die aktuelle UND alle künftigen Wochen an.
+             * Löscht alle customGoals für diese Aktivität ab dieser Woche und
+             * speichert einen baseOverride, sodass die automatische Progression
+             * ab dieser Woche mit dem neuen Wert startet.
+             */
+            function applyGoalToFuture(activityId, weekNum, value) {
+                // 1. Setze das Ziel für die aktuelle Woche
+                if (!data.customGoals[weekNum]) data.customGoals[weekNum] = {};
+                data.customGoals[weekNum][activityId] = value;
+
+                // 2. Lösche alle customGoals für diese Aktivität in Wochen > weekNum
+                Object.keys(data.customGoals).forEach(w => {
+                    if (parseInt(w) > weekNum && data.customGoals[w][activityId] !== undefined) {
+                        data.customGoals[w][activityId] = null;
+                        const allNull = Object.values(data.customGoals[w]).every(v => v === null);
+                        if (allNull) delete data.customGoals[w];
+                    }
+                });
+
+                // 3. Setze baseOverride für diese Aktivität
+                if (!data.baseOverrides) data.baseOverrides = {};
+                data.baseOverrides[activityId] = { week: weekNum, value: value };
+
+                persistData();
+                renderAll();
+                showToast('⟳ Künftige Wochen neu berechnet!');
+            }
+
+            /**
+             * Entfernt den baseOverride für eine Aktivität (Rückkehr zur Original-Progression)
+             */
+            function removeBaseOverride(activityId) {
+                if (data.baseOverrides && data.baseOverrides[activityId]) {
+                    delete data.baseOverrides[activityId];
+                    persistData();
+                    renderAll();
+                    showToast('↺ Progression zurückgesetzt!');
+                }
+            }
+
+            function persistData() {
+                if (firebaseReady && !isUpdatingFromFirebase) {
+                    // Ganze Daten pushen (einfacher als einzelne Updates)
+                    pushToFirebase(data);
+                } else if (!isUpdatingFromFirebase) {
+                    saveDataLocally();
+                }
             }
 
             // ──────────────────────────────────────
@@ -794,7 +967,14 @@
                 if (!data.logs[participant]) data.logs[participant] = {};
                 if (!data.logs[participant][weekNum]) data.logs[participant][weekNum] = {};
                 data.logs[participant][weekNum][activityId] = value;
-                saveData();
+
+                // Gezieltes Update nach Firebase
+                const path = `logs/${participant}/${weekNum}/${activityId}`;
+                if (firebaseReady && !isUpdatingFromFirebase) {
+                    updateToFirebase(path, value);
+                } else if (!isUpdatingFromFirebase) {
+                    saveDataLocally();
+                }
                 renderParticipants();
             }
 
@@ -823,7 +1003,7 @@
                     isCustom: true,
                 };
                 data.activities.push(newActivity);
-                saveData();
+                persistData();
                 nameInput.value = '';
                 baseInput.value = '';
                 unitInput.value = '';
@@ -837,10 +1017,9 @@
                     showToast('⚠️ Standard-Aktivitäten können nicht gelöscht werden.');
                     return;
                 }
-                if (!confirm(`Aktivität "${activity.name}" wirklich löschen? Alle Logs dazu bleiben erhalten.`))
-                    return;
+                if (!confirm(`Aktivität "${activity.name}" wirklich löschen?`)) return;
                 data.activities = data.activities.filter(a => a.id !== activityId);
-                saveData();
+                persistData();
                 renderAll();
                 showToast('🗑️ Aktivität gelöscht.');
             }
@@ -849,6 +1028,7 @@
             // RENDERING
             // ──────────────────────────────────────
             function renderAll() {
+                if (!data) return;
                 renderWeekNav();
                 renderGoals();
                 renderParticipants();
@@ -867,19 +1047,26 @@
                 for (const activity of data.activities) {
                     const goal = getGoalForWeek(activity.id, currentWeek);
                     const isCustom = hasCustomGoal(activity.id, currentWeek);
+                    const hasOverride = data.baseOverrides && data.baseOverrides[activity.id] &&
+                        data.baseOverrides[activity.id].week <= currentWeek;
                     const formattedGoal = activity.decimals === 0 ? Math.round(goal) : goal.toFixed(activity
                         .decimals);
                     const unitStr = activity.unit ? ' ' + activity.unit : '';
+                    const customClass = (isCustom || hasOverride) ? 'goal-custom' : '';
+
                     html += `
-                    <div class="goal-item ${isCustom ? 'goal-custom' : ''}" id="goal-row-${activity.id}">
+                    <div class="goal-item ${customClass}" id="goal-row-${activity.id}">
                         <span class="goal-icon">${activity.icon}</span>
                         <span class="goal-name">${activity.name}</span>
                         <span class="goal-value" id="goal-value-${activity.id}">${formattedGoal}${unitStr}</span>
                         <button class="goal-edit-btn" onclick="toggleGoalEdit('${activity.id}')" title="Ziel anpassen">✏️</button>
                         <div class="goal-edit-inline" id="goal-edit-${activity.id}" style="display:none;">
-                            <input type="number" id="goal-input-${activity.id}" value="${goal}" step="${activity.decimals === 0 ? '1' : '0.1'}" min="1">
-                            <button class="btn-confirm" onclick="confirmGoalEdit('${activity.id}')">✓</button>
+                            <input type="number" id="goal-input-${activity.id}" value="${goal}"
+                                   step="${activity.decimals === 0 ? '1' : '0.1'}" min="1">
+                            <button class="btn-confirm" onclick="confirmGoalEdit('${activity.id}')">✓ nur diese</button>
+                            <button class="btn-apply-future" onclick="applyGoalToFutureFromEdit('${activity.id}')" title="Auf künftige Wochen anwenden">⟳ künftige</button>
                             <button class="btn-reset" onclick="resetCustomGoal('${activity.id}', ${currentWeek})">↺</button>
+                            ${hasOverride ? `<button class="btn-reset" style="background:#fff3cd;color:#856404;" onclick="removeBaseOverride('${activity.id}')" title="Override entfernen">✕ Override</button>` : ''}
                         </div>
                     </div>`;
                 }
@@ -966,7 +1153,8 @@
                         </span>`;
                     }
                 }
-                if (!html) html = '<span style="color:var(--text-light);font-size:0.85rem;">Keine zusätzlichen Aktivitäten</span>';
+                if (!html) html =
+                    '<span style="color:var(--text-light);font-size:0.85rem;">Keine zusätzlichen Aktivitäten</span>';
                 list.innerHTML = html;
             }
 
@@ -985,8 +1173,8 @@
                 const val = parseFloat(rawValue);
                 const activity = data.activities.find(a => a.id === activityId);
                 const decimals = activity ? activity.decimals : 0;
-                const cleanVal = isNaN(val) || val < 0 ? 0 : Math.round(val * Math.pow(10, decimals)) / Math.pow(10,
-                    decimals);
+                const cleanVal = isNaN(val) || val < 0 ? 0 : Math.round(val * Math.pow(10, decimals)) / Math.pow(
+                    10, decimals);
                 setLog(participant, weekNum, activityId, cleanVal);
             }
 
@@ -1018,7 +1206,7 @@
                 const valueSpan = document.getElementById('goal-value-' + activityId);
                 const input = document.getElementById('goal-input-' + activityId);
 
-                if (editDiv.style.display === 'none') {
+                if (editDiv.style.display === 'none' || editDiv.style.display === '') {
                     const currentGoal = getGoalForWeek(activityId, currentWeek);
                     input.value = currentGoal;
                     editDiv.style.display = 'flex';
@@ -1042,7 +1230,24 @@
                 const decimals = activity ? activity.decimals : 0;
                 const cleanVal = Math.round(val * Math.pow(10, decimals)) / Math.pow(10, decimals);
                 setCustomGoal(activityId, currentWeek, cleanVal);
-                // UI zurücksetzen
+                const editDiv = document.getElementById('goal-edit-' + activityId);
+                const valueSpan = document.getElementById('goal-value-' + activityId);
+                editDiv.style.display = 'none';
+                valueSpan.style.display = '';
+                showToast('✏️ Ziel nur für diese Woche gesetzt');
+            }
+
+            function applyGoalToFutureFromEdit(activityId) {
+                const input = document.getElementById('goal-input-' + activityId);
+                const val = parseFloat(input.value);
+                const activity = data.activities.find(a => a.id === activityId);
+                if (isNaN(val) || val <= 0) {
+                    showToast('⚠️ Bitte gültigen Wert > 0 eingeben!');
+                    return;
+                }
+                const decimals = activity ? activity.decimals : 0;
+                const cleanVal = Math.round(val * Math.pow(10, decimals)) / Math.pow(10, decimals);
+                applyGoalToFuture(activityId, currentWeek, cleanVal);
                 const editDiv = document.getElementById('goal-edit-' + activityId);
                 const valueSpan = document.getElementById('goal-value-' + activityId);
                 editDiv.style.display = 'none';
@@ -1063,7 +1268,6 @@
             // KEYBOARD NAVIGATION
             // ──────────────────────────────────────
             document.addEventListener('keydown', function(e) {
-                // Pfeiltasten für Wochen-Navigation
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
                 if (e.key === 'ArrowLeft') {
                     e.preventDefault();
@@ -1075,15 +1279,15 @@
                     e.preventDefault();
                     goToCurrentWeek();
                 } else if (e.key === 'Escape') {
-                    // Schließe alle offenen Edit-Felder
-                    document.querySelectorAll('.goal-edit-inline').forEach(el => el.style.display = 'none');
+                    document.querySelectorAll('.goal-edit-inline').forEach(el => el.style.display =
+                        'none');
                     document.querySelectorAll('.goal-value').forEach(el => el.style.display = '');
                     document.getElementById('settingsPanel').classList.remove('active');
                 }
             });
 
             // ──────────────────────────────────────
-            // EXPOSE GLOBAL FUNCTIONS
+            // GLOBALE FUNKTIONEN
             // ──────────────────────────────────────
             window.navigateWeek = navigateWeek;
             window.goToCurrentWeek = goToCurrentWeek;
@@ -1091,7 +1295,9 @@
             window.saveStartDate = saveStartDate;
             window.toggleGoalEdit = toggleGoalEdit;
             window.confirmGoalEdit = confirmGoalEdit;
+            window.applyGoalToFutureFromEdit = applyGoalToFutureFromEdit;
             window.resetCustomGoal = resetCustomGoal;
+            window.removeBaseOverride = removeBaseOverride;
             window.handleLogChange = handleLogChange;
             window.addCustomActivity = addCustomActivity;
             window.removeCustomActivity = removeCustomActivity;
@@ -1100,16 +1306,24 @@
             // INIT
             // ──────────────────────────────────────
             function init() {
+                // Firebase initialisieren (oder auf localStorage zurückfallen)
+                initFirebase();
+
+                // Falls Firebase nicht ready, direkt localStorage nutzen
+                if (!data) {
+                    loadFromLocalStorage();
+                }
+
                 currentWeek = calculateCurrentWeek();
-                renderAll();
-                // Lade Startdatum ins Input-Feld
-                document.getElementById('startDateInput').value = data.startDate;
-                console.log('🏃 Team Challenge geladen!');
-                console.log('   Startdatum:', data.startDate);
-                console.log('   Aktuelle Woche:', currentWeek);
-                console.log('   Aktivitäten:', data.activities.length);
-                console.log('   Teilnehmer:', PARTICIPANTS.join(', '));
-                console.log('   💡 Tipp: Pfeiltasten ← → zur Navigation, T für "Heute", ESC zum Schließen');
+
+                // Warte kurz, ob Firebase verbindet, dann rendern
+                setTimeout(() => {
+                    if (!data) {
+                        loadFromLocalStorage();
+                    }
+                    renderAll();
+                    document.getElementById('startDateInput').value = data ? data.startDate : '';
+                }, 300);
             }
 
             init();
