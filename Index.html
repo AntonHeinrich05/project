@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏃 Team Challenge</title>
+    <style>
+        :root {
+            --bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --primary: #3b5998;
+            --primary-light: #e8edf5;
+            --accent: #27ae60;
+            --accent-light: #e8f8ef;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --text: #2c3e50;
+            --text-light: #5a6c7d;
+            --border: #dce3ea;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+            --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+            --radius: 14px;
+            --radius-sm: 8px;
+            --transition: 0.2s ease;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            max-width: 700px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 10px 0;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+        .header h1 span {
+            font-size: 1.8rem;
+        }
+        .header .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* Week Navigation */
+        .week-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 14px 18px;
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
+        }
+        .week-nav button {
+            background: var(--primary-light);
+            border: 2px solid transparent;
+            color: var(--primary);
+            font-size: 1.3rem;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .week-nav button:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .week-nav button:active {
+            transform: scale(0.94);
+        }
+        .week-nav .week-display {
+            font-weight: 700;
+            font-size: 1.15rem;
+            text-align: center;
+            min-width: 200px;
+            color: var(--text);
+        }
+        .week-nav .week-display .week-num {
+            font-size: 1.6rem;
+            color: var(--primary);
+            display: block;
+            line-height: 1;
+        }
+        .week-nav .week-display .week-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+        .btn-today {
+            background: var(--accent) !important;
+            color: #fff !important;
+            border-radius: 20px !important;
+            font-size: 0.85rem !important;
+            padding: 8px 16px !important;
+            width: auto !important;
+            height: auto !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.3px;
+        }
+        .btn-today:hover {
+            background: #219a52 !important;
+            border-color: #219a52 !important;
+        }
+        .btn-settings {
+            background: transparent !important;
+            border: 2px solid var(--border) !important;
+            font-size: 1rem !important;
+            width: 38px !important;
+            height: 38px !important;
+        }
+        .btn-settings:hover {
+            border-color: var(--primary) !important;
+            background: var(--primary-light) !important;
+            color: var(--primary) !important;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            box-shadow: var(--shadow);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .settings-panel.active {
+            display: flex;
+        }
+        .settings-panel label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .settings-panel input[type="date"] {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: var(--font);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        .settings-panel input[type="date"]:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 89, 152, 0.1);
+        }
+        .settings-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn-sm {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            font-family: var(--font);
+        }
+        .btn-save {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-save:hover {
+            background: #219a52;
+        }
+        .btn-add-activity {
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-add-activity:hover {
+            background: #2d4373;
+        }
+        .btn-delete {
+            background: #fff;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+        .btn-delete:hover {
+            background: #fdecea;
+        }
+        .custom-activities-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .custom-act-tag {
+            background: var(--primary-light);
+            padding: 5px 10px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .custom-act-tag button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--danger);
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 0 2px;
+            line-height: 1;
+        }
+
+        /* Goals Card */
+        .goals-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        .goals-card h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .goals-card h2 .icon {
+            font-size: 1.3rem;
+        }
+        .goals-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .goal-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--primary-light);
+            border-radius: var(--radius-sm);
+            flex-wrap: wrap;
+            transition: var(--transition);
+            position: relative;
+        }
+        .goal-item .goal-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .goal-item .goal-name {
+            font-weight: 600;
+            flex: 1;
+            min-width: 100px;
+        }
+        .goal-item .goal-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary);
+            min-width: 80px;
+            text-align: right;
+        }
+        .goal-item .goal-edit-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: var(--transition);
+            color: var(--text-light);
+        }
+        .goal-item .goal-edit-btn:hover {
+            background: #dce3ea;
+            color: var(--primary);
+        }
+        .goal-item.goal-custom {
+            background: #fef9e7;
+            border-left: 3px solid var(--warning);
+        }
+        .goal-item.goal-custom .goal-value {
+            color: var(--warning);
+        }
+        .goal-edit-inline {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .goal-edit-inline input {
+            width: 80px;
+            padding: 5px 8px;
+            border: 2px solid var(--warning);
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 1rem;
+            font-family: var(--font);
+        }
+        .goal-edit-inline button {
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: var(--font);
+        }
+        .goal-edit-inline .btn-reset {
+            background: #fdecea;
+            color: var(--danger);
+        }
+        .goal-edit-inline .btn-confirm {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* Participant Cards */
+        .participants-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .participant-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+        .participant-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+        .participant-card.anton {
+            border-left-color: #3498db;
+        }
+        .participant-card.dean {
+            border-left-color: #e67e22;
+        }
+        .participant-card.laurens {
+            border-left-color: #9b59b6;
+        }
+        .participant-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .participant-card .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+            font-size: 1rem;
+        }
+        .anton .avatar {
+            background: #3498db;
+        }
+        .dean .avatar {
+            background: #e67e22;
+        }
+        .laurens .avatar {
+            background: #9b59b6;
+        }
+        .participant-activities {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .participant-activity-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 6px 0;
+        }
+        .participant-activity-row .act-icon {
+            font-size: 1.1rem;
+            width: 26px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .participant-activity-row .act-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-light);
+            width: 70px;
+            flex-shrink: 0;
+        }
+        .participant-activity-row input {
+            width: 70px;
+            padding: 6px 8px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-align: center;
+            font-family: var(--font);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .participant-activity-row input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 89, 152, 0.08);
+        }
+        .participant-activity-row .goal-info {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            flex-shrink: 0;
+            min-width: 50px;
+            text-align: right;
+        }
+        .progress-bar-wrap {
+            flex: 1;
+            min-width: 80px;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.4s ease, background 0.4s ease;
+            min-width: 0;
+        }
+        .progress-pct {
+            font-size: 0.75rem;
+            font-weight: 700;
+            width: 38px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .progress-pct.over {
+            color: #e67e22;
+        }
+        .progress-pct.complete {
+            color: var(--accent);
+        }
+        .overall-progress {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .overall-progress .progress-bar-wrap {
+            height: 14px;
+            flex: 1;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .week-nav {
+                gap: 6px;
+                padding: 10px 12px;
+            }
+            .week-nav .week-display {
+                min-width: 140px;
+                font-size: 0.95rem;
+            }
+            .week-nav .week-display .week-num {
+                font-size: 1.3rem;
+            }
+            .week-nav button {
+                width: 34px;
+                height: 34px;
+                font-size: 1rem;
+            }
+            .participant-activity-row {
+                gap: 4px;
+            }
+            .participant-activity-row .act-name {
+                width: 55px;
+                font-size: 0.7rem;
+            }
+            .participant-activity-row input {
+                width: 55px;
+                font-size: 0.85rem;
+                padding: 5px 4px;
+            }
+            .progress-pct {
+                width: 30px;
+                font-size: 0.7rem;
+            }
+            .goal-item {
+                gap: 6px;
+                padding: 6px 8px;
+            }
+            .goal-item .goal-name {
+                font-size: 0.85rem;
+            }
+            .goal-item .goal-value {
+                font-size: 0.95rem;
+                min-width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><span>🏃‍♂️</span> Team Challenge</h1>
+            <p class="subtitle">Anton, Dean & Laurens – gemeinsam fitter werden</p>
+        </div>
+
+        <!-- Week Navigation -->
+        <div class="week-nav" id="weekNav">
+            <button onclick="navigateWeek(-1)" title="Vorherige Woche">◀</button>
+            <div class="week-display">
+                <span class="week-num" id="weekNum">Woche 1</span>
+                <span class="week-date" id="weekDate"></span>
+            </div>
+            <button onclick="navigateWeek(1)" title="Nächste Woche">▶</button>
+            <button class="btn-today" onclick="goToCurrentWeek()">📅 Heute</button>
+            <button class="btn-settings" onclick="toggleSettings()" title="Einstellungen">⚙️</button>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel" id="settingsPanel">
+            <label>📅 Startdatum der Challenge (Woche 1 beginnt an diesem Tag)</label>
+            <div class="settings-row">
+                <input type="date" id="startDateInput" onchange="saveStartDate()">
+                <button class="btn-sm btn-save" onclick="saveStartDate()">Speichern</button>
+            </div>
+            <label style="margin-top:6px;">➕ Zusätzliche Aktivitäten</label>
+            <div class="custom-activities-list" id="customActivitiesList"></div>
+            <div class="settings-row" style="gap:6px;">
+                <input type="text" id="newActName" placeholder="Name (z.B. Burpees)" style="padding:7px 10px;border:2px solid var(--border);border-radius:20px;font-family:var(--font);flex:1;min-width:120px;">
+                <input type="number" id="newActBase" placeholder="Basis-Wert W1" style="width:80px;padding:7px 8px;border:2px solid var(--border);border-radius:20px;font-family:var(--font);text-align:center;">
+                <input type="text" id="newActUnit" placeholder="Einheit" style="width:55px;padding:7px 4px;border:2px solid var(--border);border-radius:20px;font-family:var(--font);text-align:center;">
+                <button class="btn-sm btn-add-activity" onclick="addCustomActivity()">➕ Hinzufügen</button>
+            </div>
+        </div>
+
+        <!-- Weekly Goals -->
+        <div class="goals-card" id="goalsCard">
+            <h2><span class="icon">🎯</span> Wochenziel</h2>
+            <div class="goals-list" id="goalsList"></div>
+        </div>
+
+        <!-- Participants -->
+        <div class="participants-grid" id="participantsGrid"></div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            // ──────────────────────────────────────
+            // CONFIGURATION
+            // ──────────────────────────────────────
+            const DEFAULT_ACTIVITIES = [
+                { id: 'laufen', name: 'Laufen', unit: 'km', baseValue: 10, decimals: 1, icon: '🏃' },
+                { id: 'liegestuetze', name: 'Liegestütze', unit: '', baseValue: 500, decimals: 0,
+                icon: '💪' },
+                { id: 'klimmzuege', name: 'Klimmzüge', unit: '', baseValue: 50, decimals: 0, icon: '🏋️' },
+            ];
+            const PARTICIPANTS = ['Anton', 'Dean', 'Laurens'];
+            const PARTICIPANT_COLORS = {
+                'Anton': '#3498db',
+                'Dean': '#e67e22',
+                'Laurens': '#9b59b6'
+            };
+            const STORAGE_KEY = 'teamChallengeData_v2';
+
+            // ──────────────────────────────────────
+            // STATE
+            // ──────────────────────────────────────
+            let currentWeek = 1;
+            let data = loadData();
+
+            // ──────────────────────────────────────
+            // DATA MANAGEMENT
+            // ──────────────────────────────────────
+            function getDefaultData() {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                return {
+                    startDate: `${yyyy}-${mm}-${dd}`,
+                    activities: JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES)),
+                    logs: {}, // { participantName: { weekNum: { activityId: value } } }
+                    customGoals: {}, // { weekNum: { activityId: value|null } }
+                };
+            }
+
+            function loadData() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        // Merge mit defaults, falls neue Aktivitäten dazugekommen sind
+                        const defaultActs = JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));
+                        const existingIds = new Set((parsed.activities || []).map(a => a.id));
+                        for (const da of defaultActs) {
+                            if (!existingIds.has(da.id)) {
+                                parsed.activities.push(da);
+                            }
+                        }
+                        parsed.logs = parsed.logs || {};
+                        parsed.customGoals = parsed.customGoals || {};
+                        return parsed;
+                    }
+                } catch (e) {
+                    console.warn('Fehler beim Laden der Daten:', e);
+                }
+                return getDefaultData();
+            }
+
+            function saveData() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } catch (e) {
+                    showToast('⚠️ Fehler beim Speichern!');
+                }
+            }
+
+            function saveStartDate() {
+                const input = document.getElementById('startDateInput');
+                if (input.value) {
+                    data.startDate = input.value;
+                    saveData();
+                    currentWeek = calculateCurrentWeek();
+                    renderAll();
+                    showToast('✅ Startdatum gespeichert!');
+                }
+            }
+
+            function getStartDate() {
+                return new Date(data.startDate + 'T00:00:00');
+            }
+
+            function calculateCurrentWeek() {
+                const start = getStartDate();
+                const now = new Date();
+                const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+                return Math.max(1, Math.floor(diffDays / 7) + 1);
+            }
+
+            function getWeekDateRange(weekNum) {
+                const start = getStartDate();
+                const weekStart = new Date(start);
+                weekStart.setDate(weekStart.getDate() + (weekNum - 1) * 7);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                const opts = { day: '2-digit', month: '2-digit', year: 'numeric' };
+                return {
+                    start: weekStart.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+                    end: weekEnd.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit',
+                        year: 'numeric' }),
+                };
+            }
+
+            // ──────────────────────────────────────
+            // GOAL CALCULATION
+            // ──────────────────────────────────────
+            function calculateGoal(activity, weekNum) {
+                const monthIndex = Math.floor((weekNum - 1) / 4); // 0-basiert
+                const weekInMonth = ((weekNum - 1) % 4) + 1; // 1-4
+                const monthlyBase = activity.baseValue * Math.pow(1.25, monthIndex);
+                const weeklyGoal = monthlyBase * (1 + 0.25 * (weekInMonth - 1));
+                const decimals = activity.decimals || 0;
+                return Math.round(weeklyGoal * Math.pow(10, decimals)) / Math.pow(10, decimals);
+            }
+
+            function getGoalForWeek(activityId, weekNum) {
+                // Prüfe benutzerdefiniertes Ziel
+                if (data.customGoals[weekNum] && data.customGoals[weekNum][activityId] !== undefined &&
+                    data.customGoals[weekNum][activityId] !== null) {
+                    return data.customGoals[weekNum][activityId];
+                }
+                const activity = data.activities.find(a => a.id === activityId);
+                if (!activity) return 0;
+                return calculateGoal(activity, weekNum);
+            }
+
+            function hasCustomGoal(activityId, weekNum) {
+                return data.customGoals[weekNum] && data.customGoals[weekNum][activityId] !== undefined &&
+                    data.customGoals[weekNum][activityId] !== null;
+            }
+
+            function setCustomGoal(activityId, weekNum, value) {
+                if (!data.customGoals[weekNum]) data.customGoals[weekNum] = {};
+                data.customGoals[weekNum][activityId] = value;
+                saveData();
+                renderAll();
+                showToast('✏️ Ziel angepasst!');
+            }
+
+            function resetCustomGoal(activityId, weekNum) {
+                if (data.customGoals[weekNum]) {
+                    data.customGoals[weekNum][activityId] = null;
+                    // Cleanup leere Einträge
+                    const allNull = Object.values(data.customGoals[weekNum]).every(v => v === null);
+                    if (allNull) delete data.customGoals[weekNum];
+                }
+                saveData();
+                renderAll();
+                showToast('↺ Ziel zurückgesetzt!');
+            }
+
+            // ──────────────────────────────────────
+            // LOG MANAGEMENT
+            // ──────────────────────────────────────
+            function getLog(participant, weekNum, activityId) {
+                if (!data.logs[participant]) return 0;
+                if (!data.logs[participant][weekNum]) return 0;
+                return data.logs[participant][weekNum][activityId] || 0;
+            }
+
+            function setLog(participant, weekNum, activityId, value) {
+                if (!data.logs[participant]) data.logs[participant] = {};
+                if (!data.logs[participant][weekNum]) data.logs[participant][weekNum] = {};
+                data.logs[participant][weekNum][activityId] = value;
+                saveData();
+                renderParticipants();
+            }
+
+            // ──────────────────────────────────────
+            // CUSTOM ACTIVITIES
+            // ──────────────────────────────────────
+            function addCustomActivity() {
+                const nameInput = document.getElementById('newActName');
+                const baseInput = document.getElementById('newActBase');
+                const unitInput = document.getElementById('newActUnit');
+                const name = nameInput.value.trim();
+                const baseValue = parseFloat(baseInput.value);
+                const unit = unitInput.value.trim();
+
+                if (!name) { showToast('⚠️ Bitte Namen eingeben!'); return; }
+                if (isNaN(baseValue) || baseValue <= 0) { showToast('⚠️ Basis-Wert muss > 0 sein!'); return; }
+
+                const id = 'custom_' + Date.now();
+                const newActivity = {
+                    id: id,
+                    name: name,
+                    unit: unit,
+                    baseValue: baseValue,
+                    decimals: unit === 'km' || unit === 'min' ? 1 : 0,
+                    icon: '⭐',
+                    isCustom: true,
+                };
+                data.activities.push(newActivity);
+                saveData();
+                nameInput.value = '';
+                baseInput.value = '';
+                unitInput.value = '';
+                renderAll();
+                showToast('✅ Aktivität hinzugefügt: ' + name);
+            }
+
+            function removeCustomActivity(activityId) {
+                const activity = data.activities.find(a => a.id === activityId);
+                if (!activity || !activity.isCustom) {
+                    showToast('⚠️ Standard-Aktivitäten können nicht gelöscht werden.');
+                    return;
+                }
+                if (!confirm(`Aktivität "${activity.name}" wirklich löschen? Alle Logs dazu bleiben erhalten.`))
+                    return;
+                data.activities = data.activities.filter(a => a.id !== activityId);
+                saveData();
+                renderAll();
+                showToast('🗑️ Aktivität gelöscht.');
+            }
+
+            // ──────────────────────────────────────
+            // RENDERING
+            // ──────────────────────────────────────
+            function renderAll() {
+                renderWeekNav();
+                renderGoals();
+                renderParticipants();
+                renderSettings();
+            }
+
+            function renderWeekNav() {
+                const dateRange = getWeekDateRange(currentWeek);
+                document.getElementById('weekNum').textContent = 'Woche ' + currentWeek;
+                document.getElementById('weekDate').textContent = dateRange.start + ' – ' + dateRange.end;
+            }
+
+            function renderGoals() {
+                const goalsList = document.getElementById('goalsList');
+                let html = '';
+                for (const activity of data.activities) {
+                    const goal = getGoalForWeek(activity.id, currentWeek);
+                    const isCustom = hasCustomGoal(activity.id, currentWeek);
+                    const formattedGoal = activity.decimals === 0 ? Math.round(goal) : goal.toFixed(activity
+                        .decimals);
+                    const unitStr = activity.unit ? ' ' + activity.unit : '';
+                    html += `
+                    <div class="goal-item ${isCustom ? 'goal-custom' : ''}" id="goal-row-${activity.id}">
+                        <span class="goal-icon">${activity.icon}</span>
+                        <span class="goal-name">${activity.name}</span>
+                        <span class="goal-value" id="goal-value-${activity.id}">${formattedGoal}${unitStr}</span>
+                        <button class="goal-edit-btn" onclick="toggleGoalEdit('${activity.id}')" title="Ziel anpassen">✏️</button>
+                        <div class="goal-edit-inline" id="goal-edit-${activity.id}" style="display:none;">
+                            <input type="number" id="goal-input-${activity.id}" value="${goal}" step="${activity.decimals === 0 ? '1' : '0.1'}" min="1">
+                            <button class="btn-confirm" onclick="confirmGoalEdit('${activity.id}')">✓</button>
+                            <button class="btn-reset" onclick="resetCustomGoal('${activity.id}', ${currentWeek})">↺</button>
+                        </div>
+                    </div>`;
+                }
+                goalsList.innerHTML = html;
+            }
+
+            function renderParticipants() {
+                const grid = document.getElementById('participantsGrid');
+                let html = '';
+                for (const participant of PARTICIPANTS) {
+                    const cssClass = participant.toLowerCase();
+                    const initial = participant.charAt(0);
+                    html += `
+                    <div class="participant-card ${cssClass}">
+                        <h3>
+                            <span class="avatar">${initial}</span>
+                            ${participant}
+                        </h3>
+                        <div class="participant-activities">`;
+
+                    let totalProgress = 0;
+                    let activityCount = 0;
+
+                    for (const activity of data.activities) {
+                        const goal = getGoalForWeek(activity.id, currentWeek);
+                        const logValue = getLog(participant, currentWeek, activity.id);
+                        const pct = goal > 0 ? Math.min(100, Math.round((logValue / goal) * 100)) : 0;
+                        const pctDisplay = goal > 0 ? Math.round((logValue / goal) * 100) : 0;
+                        totalProgress += pct;
+                        activityCount++;
+                        const barColor = getProgressColor(pct);
+                        const formattedGoal = activity.decimals === 0 ? Math.round(goal) : goal.toFixed(
+                            activity.decimals);
+                        const unitStr = activity.unit ? ' ' + activity.unit : '';
+                        const pctClass = pct >= 100 ? 'complete' : (pct > 100 ? 'over' : '');
+
+                        html += `
+                        <div class="participant-activity-row">
+                            <span class="act-icon">${activity.icon}</span>
+                            <span class="act-name">${activity.name}</span>
+                            <input type="number"
+                                   value="${logValue > 0 ? logValue : ''}"
+                                   placeholder="0"
+                                   step="${activity.decimals === 0 ? '1' : '0.1'}"
+                                   min="0"
+                                   onchange="handleLogChange('${participant}', ${currentWeek}, '${activity.id}', this.value)"
+                                   title="Geloggter Wert für ${activity.name}">
+                            <span class="goal-info">/ ${formattedGoal}${unitStr}</span>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar-fill" style="width:${Math.min(pct, 100)}%; background:${barColor};"></div>
+                            </div>
+                            <span class="progress-pct ${pctClass}">${pctDisplay}%</span>
+                        </div>`;
+                    }
+
+                    const overallPct = activityCount > 0 ? Math.round(totalProgress / activityCount) : 0;
+                    const overallColor = getProgressColor(overallPct);
+
+                    html += `
+                        </div>
+                        <div class="overall-progress">
+                            <span>📊 Gesamt:</span>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar-fill" style="width:${Math.min(overallPct, 100)}%; background:${overallColor};"></div>
+                            </div>
+                            <span style="font-weight:700;">${overallPct}%</span>
+                        </div>
+                    </div>`;
+                }
+                grid.innerHTML = html;
+            }
+
+            function renderSettings() {
+                document.getElementById('startDateInput').value = data.startDate;
+                const list = document.getElementById('customActivitiesList');
+                let html = '';
+                for (const activity of data.activities) {
+                    if (activity.isCustom) {
+                        const unitStr = activity.unit ? ' ' + activity.unit : '';
+                        html += `
+                        <span class="custom-act-tag">
+                            ${activity.icon} ${activity.name} (Basis: ${activity.baseValue}${unitStr})
+                            <button onclick="removeCustomActivity('${activity.id}')" title="Löschen">×</button>
+                        </span>`;
+                    }
+                }
+                if (!html) html = '<span style="color:var(--text-light);font-size:0.85rem;">Keine zusätzlichen Aktivitäten</span>';
+                list.innerHTML = html;
+            }
+
+            function getProgressColor(pct) {
+                if (pct >= 100) return '#27ae60';
+                if (pct >= 75) return '#2ecc71';
+                if (pct >= 50) return '#f1c40f';
+                if (pct >= 25) return '#f39c12';
+                return '#e74c3c';
+            }
+
+            // ──────────────────────────────────────
+            // EVENT HANDLERS
+            // ──────────────────────────────────────
+            function handleLogChange(participant, weekNum, activityId, rawValue) {
+                const val = parseFloat(rawValue);
+                const activity = data.activities.find(a => a.id === activityId);
+                const decimals = activity ? activity.decimals : 0;
+                const cleanVal = isNaN(val) || val < 0 ? 0 : Math.round(val * Math.pow(10, decimals)) / Math.pow(10,
+                    decimals);
+                setLog(participant, weekNum, activityId, cleanVal);
+            }
+
+            function navigateWeek(delta) {
+                const newWeek = currentWeek + delta;
+                if (newWeek >= 1) {
+                    currentWeek = newWeek;
+                    renderAll();
+                }
+            }
+
+            function goToCurrentWeek() {
+                currentWeek = calculateCurrentWeek();
+                renderAll();
+                showToast('📅 Zur aktuellen Woche gesprungen');
+            }
+
+            function toggleSettings() {
+                const panel = document.getElementById('settingsPanel');
+                panel.classList.toggle('active');
+                if (panel.classList.contains('active')) {
+                    renderSettings();
+                    document.getElementById('startDateInput').value = data.startDate;
+                }
+            }
+
+            function toggleGoalEdit(activityId) {
+                const editDiv = document.getElementById('goal-edit-' + activityId);
+                const valueSpan = document.getElementById('goal-value-' + activityId);
+                const input = document.getElementById('goal-input-' + activityId);
+
+                if (editDiv.style.display === 'none') {
+                    const currentGoal = getGoalForWeek(activityId, currentWeek);
+                    input.value = currentGoal;
+                    editDiv.style.display = 'flex';
+                    valueSpan.style.display = 'none';
+                    input.focus();
+                    input.select();
+                } else {
+                    editDiv.style.display = 'none';
+                    valueSpan.style.display = '';
+                }
+            }
+
+            function confirmGoalEdit(activityId) {
+                const input = document.getElementById('goal-input-' + activityId);
+                const val = parseFloat(input.value);
+                const activity = data.activities.find(a => a.id === activityId);
+                if (isNaN(val) || val <= 0) {
+                    showToast('⚠️ Bitte gültigen Wert > 0 eingeben!');
+                    return;
+                }
+                const decimals = activity ? activity.decimals : 0;
+                const cleanVal = Math.round(val * Math.pow(10, decimals)) / Math.pow(10, decimals);
+                setCustomGoal(activityId, currentWeek, cleanVal);
+                // UI zurücksetzen
+                const editDiv = document.getElementById('goal-edit-' + activityId);
+                const valueSpan = document.getElementById('goal-value-' + activityId);
+                editDiv.style.display = 'none';
+                valueSpan.style.display = '';
+            }
+
+            function showToast(msg) {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(toast._timeout);
+                toast._timeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 1800);
+            }
+
+            // ──────────────────────────────────────
+            // KEYBOARD NAVIGATION
+            // ──────────────────────────────────────
+            document.addEventListener('keydown', function(e) {
+                // Pfeiltasten für Wochen-Navigation
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    navigateWeek(-1);
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    navigateWeek(1);
+                } else if (e.key === 't' || e.key === 'T') {
+                    e.preventDefault();
+                    goToCurrentWeek();
+                } else if (e.key === 'Escape') {
+                    // Schließe alle offenen Edit-Felder
+                    document.querySelectorAll('.goal-edit-inline').forEach(el => el.style.display = 'none');
+                    document.querySelectorAll('.goal-value').forEach(el => el.style.display = '');
+                    document.getElementById('settingsPanel').classList.remove('active');
+                }
+            });
+
+            // ──────────────────────────────────────
+            // EXPOSE GLOBAL FUNCTIONS
+            // ──────────────────────────────────────
+            window.navigateWeek = navigateWeek;
+            window.goToCurrentWeek = goToCurrentWeek;
+            window.toggleSettings = toggleSettings;
+            window.saveStartDate = saveStartDate;
+            window.toggleGoalEdit = toggleGoalEdit;
+            window.confirmGoalEdit = confirmGoalEdit;
+            window.resetCustomGoal = resetCustomGoal;
+            window.handleLogChange = handleLogChange;
+            window.addCustomActivity = addCustomActivity;
+            window.removeCustomActivity = removeCustomActivity;
+
+            // ──────────────────────────────────────
+            // INIT
+            // ──────────────────────────────────────
+            function init() {
+                currentWeek = calculateCurrentWeek();
+                renderAll();
+                // Lade Startdatum ins Input-Feld
+                document.getElementById('startDateInput').value = data.startDate;
+                console.log('🏃 Team Challenge geladen!');
+                console.log('   Startdatum:', data.startDate);
+                console.log('   Aktuelle Woche:', currentWeek);
+                console.log('   Aktivitäten:', data.activities.length);
+                console.log('   Teilnehmer:', PARTICIPANTS.join(', '));
+                console.log('   💡 Tipp: Pfeiltasten ← → zur Navigation, T für "Heute", ESC zum Schließen');
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>
